@@ -61,6 +61,33 @@
                 <div class="col-md-4 mb-5">
                     <h5 class="font-weight-bold text-dark mb-4">Profile</h5>
                     <p>{{ settings()->short_about_description }}</p>
+                    <div class="d-inline-flex align-items-center">
+                        @if(settings()->facebook)
+                        <a class="text-dark px-2" target="_blank" href="{{ settings()->facebook }}">
+                           <i class="fab fa-facebook-f"></i>
+                        </a>
+                        @endif
+                        @if(settings()->twitter)
+                        <a class="text-dark px-2" href="{{ settings()->twitter }}">
+                           <i class="fab fa-twitter"></i>
+                        </a>
+                        @endif
+                        @if(settings()->linkedin)
+                        <a class="text-dark px-2" href="{{ settings()->linkedin }}">
+                           <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        @endif
+                        @if(settings()->instagram)
+                        <a class="text-dark px-2" target="_blank" href="{{ settings()->instagram }}">
+                           <i class="fab fa-instagram"></i>
+                        </a>
+                        @endif
+                        @if(settings()->youtube)
+                        <a class="text-dark pl-2" target="_blank" href="{{ settings()->youtube }}">
+                           <i class="fab fa-youtube"></i>
+                        </a>
+                        @endif
+                     </div>
                 </div>
                 @endif
             </div>

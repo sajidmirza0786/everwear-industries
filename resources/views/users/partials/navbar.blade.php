@@ -115,7 +115,6 @@
 }
 
 .navbar-brand img {
-    height: 40px;
     transition: transform 0.2s;
 }
 

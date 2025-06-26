@@ -64,7 +64,7 @@ class HomePageController extends Controller
 
                     if(in_array($imageField, ['logo', 'favicon'])) {
                         // Resize the image while maintaining its aspect ratio and fit it into a 800x800 box
-                        $image->fit(300, 200, function ($constraint) {
+                        $image->fit(300, 180, function ($constraint) {
                             $constraint->aspectRatio();
                             $constraint->upsize();
                         });
