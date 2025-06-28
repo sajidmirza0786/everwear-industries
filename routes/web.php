@@ -40,7 +40,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
-    Route::get('/order-confirmation/{order}', [CheckoutController::class, 'confirmation'])->name('order.confirmation');
+    Route::get('/order-confirmation/{order}', [CheckoutController::class, 'confirmation'])
+        ->name('order.confirmation');
 });
 
 require __DIR__.'/auth.php';
@@ -65,13 +66,9 @@ Route::namespace('App\Http\Controllers\Admin')->middleware(['auth','admin'])->pr
         Route::put('/home-settings/update', 'update')->name('settings.update');
     });
 
-    // Route::controller(UserController::class)->group(function() {
-    //     Route::get('users', 'index')->name('users.index');
-    // });
-
-
     Route::resource('categories', CategoryController::class);
     Route::resource('products', ProductsController::class);
     Route::resource('users', UserController::class);
     Route::resource('shippingcharges', ShippingChargesController::class);
+    Route::resource('orders', OrderController::class);
 });

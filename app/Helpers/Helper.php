@@ -38,6 +38,17 @@ if (!function_exists('accessLog')) {
     }
 }
 
+if (!function_exists('get_logs')) {
+    function get_logs($model_name = null, $model_id = null)
+    {
+        // Store data in the database
+        $logs = AccessLog::where('model_type', $model_name)->where('model_id', $model_id)
+            ->orderByDesc('id')->get();
+
+        return $logs; // Return true
+    }
+}
+
 /**
  * Compares the old and new values to generate a formatted description of changes.
  *

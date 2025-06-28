@@ -88,6 +88,16 @@
         </li>
 
         <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">Orders</span>
+        </li>
+        <li class="menu-item {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.orders.index') }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-package"></i>
+                <div data-i18n="Dashboard">Orders</div>
+            </a>
+        </li>
+
+        <li class="menu-header small text-uppercase">
             <span class="menu-header-text">Others</span>
         </li>
 

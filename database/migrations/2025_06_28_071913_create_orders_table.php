@@ -27,7 +27,7 @@ return new class extends Migration
             $table->decimal('total', 8, 2);
             $table->decimal('total_weight', 8, 2)->default(0.00);
             $table->decimal('shipping_charge', 8, 2)->default(0.00);
-            $table->enum('status', ['pending', 'completed', 'cancelled'])->default('pending');
+            $table->enum('status', ['pending', 'completed', 'cancelled', 'in-transit'])->default('pending');
             $table->enum('payment_method', ['prepaid', 'cod'])->default('prepaid');
             $table->timestamps();
 
