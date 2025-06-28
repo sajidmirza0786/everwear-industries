@@ -88,7 +88,7 @@
                     </div>
                     <div class="col-12">
                         <label class="form-label">Long About Description</label>
-                        <textarea name="long_about_description" class="form-control" rows="4">{{ old('long_about_description', $settings->long_about_description) }}</textarea>
+                        <textarea name="long_about_description" id="long_description" class="form-control">{{ old('long_about_description', $settings->long_about_description) }}</textarea>
                     </div>
 
                     {{-- Banner Images --}}
@@ -210,4 +210,27 @@
         </div>
     </div>
 </div>
+@endsection
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize CKEditor
+        // Ensure the ID '#long_description' matches the textarea element's ID in your HTML
+        ClassicEditor
+            .create( document.querySelector( '#long_description' ), {
+                // Optional: Add more configuration options here if needed
+                // toolbar: [ 'heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote' ],
+                // heading: {
+                //     options: [
+                //         { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                //         { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+                //         { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' }
+                //     ]
+                // }
+            })
+            .catch( error => {
+                console.error( "CKEditor error:", error ); // Log specific CKEditor errors
+            });
+    });
+</script>
 @endsection

@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -15,15 +17,24 @@ Route::get('/dashboard', function () {
 
 Route::view('about-us', 'users.about')->name('about');
 Route::view('shipping-policy','users.shipping_policy')->name('shipping_policy');
+Route::view('contact-us', 'users.contact')->name('contact');
 
 
 Route::controller(PageController::class)->group(function(){
-    Route::get('cat/{category}', 'listing')->name('listing');
-    Route::match(['get','post'], 'contact-us', 'contactUs')->name('contact');
-    Route::match(['get','post'], 'view-product/{product}', 'detail')->name('detail');
+    Route::get('onjewel/{slug?}', 'listing')->name('listing');
     Route::get('videos', 'videos')->name('videos');
-    Route::get('search', 'search')->name('search');
 });
+
+Route::controller(CartController::class)->prefix('cart')->name('cart.')->group(function(){
+    Route::get('/', 'view')->name('view');
+    Route::post('/add', 'add')->name('add');
+    Route::post('/update', 'update')->name('update');
+    Route::post('/remove', 'remove')->name('remove');
+});
+
+Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
+Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+Route::get('/order-confirmation/{order}', [CheckoutController::class, 'confirmation'])->name('order.confirmation');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

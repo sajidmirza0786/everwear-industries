@@ -86,6 +86,7 @@
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Selling</th>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Stock</th>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">WT(GM)</th>
+                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">CreatedAt</th>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Status</th>
                             <th class="text-secondary opacity-7">Actions</th>
                         </tr>
@@ -130,6 +131,9 @@
                                     <span class="badge badge-sm {{ $product->status == 'enable' ? 'bg-success' : 'bg-danger' }}">
                                         {{ ucfirst($product->status ?? 'N/A') }}
                                     </span>
+                                </td>
+                                <td>
+                                    <p class="text-xs font-weight-bold mb-0">{{ $product->created_at->format('d M Y') }}</p>
                                 </td>
                                 @if($product->trashed())
                                 <td class="align-middle">

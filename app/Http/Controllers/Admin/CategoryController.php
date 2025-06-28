@@ -27,7 +27,7 @@ class CategoryController extends Controller
         }
 
         // Order by name for consistency
-        $categories = $query->orderBy('name')->paginate(10); 
+        $categories = $query->orderByDesc('id')->paginate(10); 
 
         return view('admin.categories.index', compact('categories'));
     }
@@ -60,10 +60,8 @@ class CategoryController extends Controller
         ]);
 
         DB::beginTransaction();
-        try {
-            if (empty($validated['slug'])) {
-                $validated['slug'] = Str::slug($validated['name']);
-            }
+        try{
+            $validated['slug'] = str()->slug($validated['name']) . '-' . str()->uuid();
 
             if ($request->hasFile('image')) {
                 
@@ -123,14 +121,13 @@ class CategoryController extends Controller
 
         DB::beginTransaction();
         try {
-            if (empty($validated['slug'])) {
-                $validated['slug'] = Str::slug($validated['name']);
-            }
+            
+            //$validated['slug'] = str()->slug($validated['name']) . '-' . str()->uuid();
 
             if ($request->hasFile('image')) {
 
                 // Check if the product has an old image, and delete it if it exists
-                if (Storage::disk('public')->exists($category->image)) {
+                if (!empty($category->image) && Storage::disk('public')->exists($category->image)) {
                     Storage::disk('public')->delete($category->image);
                 }
                 
@@ -176,6 +173,10 @@ class CategoryController extends Controller
     {
         DB::beginTransaction();
         try {
+            // Check if the product has an old image, and delete it if it exists
+            if (!empty($category->image) && Storage::disk('public')->exists($category->image)) {
+                Storage::disk('public')->delete($category->image);
+            }
             $category->delete();
             DB::commit();
             return redirect()->route('admin.categories.index')->with('success', 'Category deleted successfully.');

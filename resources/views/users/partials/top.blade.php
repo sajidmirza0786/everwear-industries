@@ -41,14 +41,11 @@
    </div>
    <div class="row align-items-center px-xl-5">
       <div class="col-lg-6 col-12 text-left d-block d-md-none">
-         <form action="{{ route('search') }}" method="GET">
-            @csrf
+         <form action="{{ route('listing') }}" method="GET" class="form-inline mx-auto my-2 my-lg-0 search-form">
             <div class="input-group">
-               <input type="text" name="query" class="form-control" placeholder="Search for products">
+               <input name="search" class="form-control border-right-0" type="text" placeholder="Search products..." aria-label="Search">
                <div class="input-group-append">
-                  <button class="input-group-text bg-transparent text-primary" type="submit">
-                  <i class="fa fa-search"></i>
-                  </button>
+                  <button class="btn btn-outline-primary" type="submit"><i class="fa fa-search"></i></button>
                </div>
             </div>
          </form>

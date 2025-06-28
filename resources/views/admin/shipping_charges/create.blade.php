@@ -64,7 +64,7 @@
                             </div>
 
                             <div class="col-12 mt-4 mb-3">
-                                <h6 class="text-primary"><i class="bx bx-box me-1"></i> Weight Range (in kg)</h6>
+                                <h6 class="text-primary"><i class="bx bx-box me-1"></i> Weight Range (in Gram)</h6>
                                 <hr class="my-2">
                             </div>
 

@@ -47,7 +47,7 @@
                     <h5 class="font-weight-bold text-dark mb-4">Products</h5>
                     <div class="d-flex flex-column">
                         @if(ucategories()->count() > 0)
-                            @foreach(ucategories() as $category)
+                            @foreach(ucategories()->take(6) as $category)
                                 <a class="text-dark mb-2" href="{{ route('listing', $category) }}">
                                     <i class="fa fa-angle-right mr-2"></i>{{ $category->name??'' }}
                                 </a>
@@ -56,11 +56,12 @@
                     </div>
                 </div>
 
-                @if(settings()->short_about_description)
                 <!-- Company Description -->
                 <div class="col-md-4 mb-5">
                     <h5 class="font-weight-bold text-dark mb-4">Profile</h5>
+                    @if(settings()->short_about_description)
                     <p>{{ settings()->short_about_description }}</p>
+                    @endif
                     <div class="d-inline-flex align-items-center">
                         @if(settings()->facebook)
                         <a class="text-dark px-2" target="_blank" href="{{ settings()->facebook }}">
@@ -89,7 +90,6 @@
                         @endif
                      </div>
                 </div>
-                @endif
             </div>
         </div>
     </div>

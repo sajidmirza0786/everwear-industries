@@ -33,7 +33,7 @@ class ShippingChargesController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'state_id' => 'required|exists:states,id',
+            'state_id' => 'nullable|exists:states,id',
             'min_weight' => 'required|numeric|min:0',
             'max_weight' => 'nullable|numeric|gte:min_weight',
             'min_order_amount' => 'required|numeric|min:0',
@@ -42,9 +42,10 @@ class ShippingChargesController extends Controller
         ]);
 
         try {
-            $state = State::find($validated['state_id']);
-
-            $validated['country_id'] = $state->country_id;
+            if($validated['state_id']) {
+                $state = State::find($validated['state_id']);
+                $validated['country_id'] = $state->country_id;
+            }
 
             DB::transaction(function () use ($validated) {
                 ShippingCharge::create($validated);

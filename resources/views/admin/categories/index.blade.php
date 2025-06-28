@@ -62,6 +62,7 @@
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Products</th>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Image</th>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Status</th>
+                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">CreatedAt</th>
                             <th class="text-secondary opacity-7">Actions</th>
                         </tr>
                     </thead>
@@ -93,6 +94,9 @@
                                     <span class="badge badge-sm {{ $category->status == 'enable' ? 'bg-success' : 'bg-danger' }}">
                                         {{ ucfirst($category->status ?? 'N/A') }}
                                     </span>
+                                </td>
+                                <td>
+                                    <h6 class="mb-0 text-sm">{{ $category->created_at->format('d M Y')??'' }}</h6>
                                 </td>
                                 <td class="align-middle">
                                     {{-- <a href="{{ route('admin.categories.show', $category) }}" class="btn btn-sm btn-info" data-bs-toggle="tooltip" data-bs-original-title="View category" title="View Details">

@@ -5,6 +5,8 @@ use App\Models\HomePage;
 use App\Models\ShippingCharge;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Cart;
+use Illuminate\Support\Collection;
 
 if (!function_exists('accessLog')) {
     function accessLog($action, $type, $requestData = null, $userId = null, $model_name = null, $model_id = null)
@@ -128,4 +130,27 @@ if(!function_exists('randomProducts')) {
     {
         return Product::where('status', 'enable')->limit(8)->inRandomOrder()->get();
     }
+}
+
+if (!function_exists('cartItems')) {
+    function cartItems(): Collection
+    {
+        if (Auth::check()) {
+            return Cart::where('user_id', Auth::id())->with('product')->get();
+        }
+
+        $cart = session()->get('cart', []);
+        $cartItems = [];
+
+        foreach ($cart as $item) {
+            $cartItems[] = (object) $item;
+        }
+
+        return collect($cartItems);
+    }
+}
+
+function cartItemCount(): int
+{
+    return cartItems()->count();
 }

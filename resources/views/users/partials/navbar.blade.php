@@ -15,13 +15,15 @@
             <!-- Mobile Icons (Cart, User, Search Toggle) -->
             <div class="d-flex align-items-center d-lg-none">
                 @guest
-                <a href="#" class="nav-link text-muted mx-2 border"><i class="fa fa-sign-in"></i> Login</a>
+                <a href="{{ route('login') }}" class="nav-link text-muted mx-2 border"><i class="fa fa-sign-in"></i> Login</a>
                 @else
-                <a href="#" class="nav-link text-muted mx-2"><i class="fa fa-user"></i></a>
+                <a href="#" class="nav-link text-muted mx-2"><i class="fa fa-user"></i> {{ substr(auth()->user()->name, 0,10) }}</a>
                 @endguest
-                <a href="#" class="nav-link text-muted mx-2 position-relative">
+                <a href="{{ route('cart.view') }}" class="nav-link text-muted mx-2 position-relative">
                     <i class="fa fa-shopping-cart"></i>
-                    <span class="cart-badge">12</span>
+                     @if(cartItemCount() > 0)
+                    <span class="cart-badge">{{ cartItemCount() }}</span>
+                    @endif
                 </a>
                 <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -49,9 +51,9 @@
                 </ul>
 
                 <!-- Search Form (Hidden on Mobile, Toggled) -->
-                <form action="{{ route('search') }}" method="GET" class="form-inline mx-auto my-2 my-lg-0 search-form d-none d-lg-flex">
+                <form action="{{ route('listing') }}" method="GET" class="form-inline mx-auto my-2 my-lg-0 search-form d-none d-lg-flex">
                     <div class="input-group">
-                        <input name="q" class="form-control border-right-0" type="search" placeholder="Search products..." aria-label="Search">
+                        <input name="search" class="form-control border-right-0" type="text" placeholder="Search products..." aria-label="Search">
                         <div class="input-group-append">
                             <button class="btn btn-outline-primary" type="submit"><i class="fa fa-search"></i></button>
                         </div>
@@ -84,9 +86,11 @@
                         <a href="#" class="nav-link text-muted"><i class="fa fa-heart"></i></a>
                     </li> --}}
                     <li class="nav-item">
-                        <a href="#" class="nav-link text-muted position-relative">
+                        <a href="{{ route('cart.view') }}" class="nav-link text-muted position-relative">
                             <i class="fa fa-shopping-cart"></i>
-                            <span class="cart-badge">12</span>
+                            @if(cartItemCount() > 0)
+                            <span class="cart-badge">{{ cartItemCount() }}</span>
+                            @endif
                         </a>
                     </li>
                 </ul>
@@ -186,26 +190,25 @@
 }
 
 /* Responsive Styles */
-@media (max-width: 991.98px) {
-    .navbar-collapse {
-        padding: 1rem;
-        background-color: #ffffff;
-        border-top: 1px solid #e9ecef;
+@media (min-width: 992px) {
+    /* Keep dropdown open on hover */
+    .navbar-nav .dropdown:hover .dropdown-menu {
+        display: block;
+        margin-top: 0; /* Optional: align perfectly under toggle */
     }
-    .navbar-nav .nav-link {
-        padding: 0.5rem 0 !important;
+
+    /* Smooth transition (optional) */
+    .dropdown-menu {
+        transition: all 0.3s ease;
+        visibility: hidden;
+        opacity: 0;
+        display: block;
     }
-    .search-form-mobile.active {
-        display: flex !important;
-    }
-    .d-lg-none .nav-link {
-        padding: 0.5rem !important;
+
+    .navbar-nav .dropdown:hover .dropdown-menu {
+        visibility: visible;
+        opacity: 1;
     }
 }
 
-@media (min-width: 992px) {
-    .search-form-mobile {
-        display: none !important;
-    }
-}
 </style>

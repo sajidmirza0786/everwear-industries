@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('country_id')->nullable(); // e.g. 'US', 'IN'
             $table->unsignedBigInteger('state_id')->nullable();   // e.g. 'CA', 'MH'
             
-            $table->decimal('min_weight', 8, 2)->default(0); // in kg or g
+            $table->decimal('min_weight', 8, 2)->default(0); // in gram
             $table->decimal('max_weight', 8, 2)->nullable(); // null = no upper limit
             
             $table->decimal('min_order_amount', 10, 2)->default(0); // optional
