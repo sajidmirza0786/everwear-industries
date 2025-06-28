@@ -20,31 +20,34 @@
         </div>
     </div>
     <!-- Page Header End -->
-
     @if (session('success'))
         <div class="container-xl py-3">
-            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
             </div>
         </div>
     @endif
     @if (session('error'))
         <div class="container-xl py-3">
-            <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 {{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
             </div>
         </div>
     @endif
     @if (session('warnings'))
         <div class="container-xl py-3">
-            @foreach (session('warnings') as $warning)
-                <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert">
-                    {{ $warning }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endforeach
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                {{ session('warnings') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
         </div>
     @endif
     @if ($errors->any())
@@ -132,7 +135,7 @@
 
                                 <div class="col-md-12 form-group">
                                     <label for="address" class="form-label">Delivery Address</label>
-                                    <textarea id="address" name="address" rows="3" class="form-control rounded" placeholder="Enter delivery address" required>{{ old('address') }}</textarea>
+                                    <textarea id="address" name="address" rows="3" class="form-control rounded" placeholder="Enter delivery address" required>{{ old('address', Auth::user()->address ?? '') }}</textarea>
                                 </div>
 
                                 <div class="col-md-12 form-group">

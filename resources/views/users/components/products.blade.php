@@ -29,14 +29,39 @@
             @endif
         </div>
 
+
+        <!-- Footer: Actions -->
+        <div class="card-footer bg-light d-flex justify-content-between align-items-center px-3 py-1 border-top">
+            <!-- View Detail -->
+            <a href="{{ route('listing', $product) }}" class="btn btn-sm text-dark d-flex align-items-center">
+                <i class="fas fa-eye text-primary mr-2"></i>View Detail
+            </a>
+
+            <!-- Add to Cart -->
+            <form action="{{ route('cart.add') }}" method="POST" class="mb-0">
+                @csrf
+                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                <input type="hidden" name="quantity" value="1">
+                @if($product->stock === 0)
+                <a href="{{ route('listing', $product) }}" class="btn btn-sm text-danger d-flex align-items-center">
+                    Out of Stock
+                </a>
+                @else
+                <button type="submit" class="btn btn-sm text-dark d-flex align-items-center">
+                    <i class="fas fa-shopping-cart text-primary mr-2"></i>Add To Cart
+                </button>
+                @endif
+            </form>
+        </div>
+
         <!-- Actions -->
-        <div class="card-footer bg-light d-flex justify-content-between align-items-center px-3 py-2 border-top">
+        {{-- <div class="card-footer bg-light d-flex justify-content-between align-items-center px-3 py-2 border-top">
             <a href="{{ route('listing', $product) }}" class="btn btn-sm text-dark d-flex align-items-center">
                 <i class="fas fa-eye text-primary mr-2"></i>View Detail
             </a>
             <a href="{{ route('listing', $product) }}" class="btn btn-sm text-dark d-flex align-items-center">
                 <i class="fas fa-shopping-cart text-primary mr-2"></i>Add To Cart
             </a>
-        </div>
+        </div> --}}
     </div>
 </div>

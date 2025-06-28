@@ -154,3 +154,35 @@ function cartItemCount(): int
 {
     return cartItems()->count();
 }
+
+if (!function_exists('getShortName')) {
+    /**
+     * Get initials from a full name (e.g., "Sajid Mirza" → "SM")
+     *
+     * @param string $name
+     * @return string
+     */
+    function getShortName(string $name): string
+    {
+        return collect(explode(' ', trim($name)))
+            ->filter()
+            ->map(fn($word) => strtoupper(Str::substr($word, 0, 1)))
+            ->implode('');
+    }
+}
+
+if (!function_exists('get_first_char')) {
+    function get_first_char($name)
+    {
+        return Str::substr(trim($name), 0, 1);
+    }
+}
+
+if (!function_exists('get_last_char')) {
+    function get_last_char($name)
+    {
+        // Remove spaces for strict last letter
+        return Str::substr(str_replace(' ', '', trim($name)), -1);
+    }
+}
+

@@ -17,7 +17,7 @@
                 @guest
                 <a href="{{ route('login') }}" class="nav-link text-muted mx-2 border"><i class="fa fa-sign-in"></i> Login</a>
                 @else
-                <a href="#" class="nav-link text-muted mx-2"><i class="fa fa-user"></i> {{ substr(auth()->user()->name, 0,10) }}</a>
+                <a href="#" class="nav-link text-muted mx-2"><i class="fa fa-user"></i> {{ getShortName(auth()->user()->name) }}</a>
                 @endguest
                 <a href="{{ route('cart.view') }}" class="nav-link text-muted mx-2 position-relative">
                     <i class="fa fa-shopping-cart"></i>
@@ -157,8 +157,8 @@
 
 .cart-badge {
     position: absolute;
-    top: -8px;
-    right: -8px;
+    top: -5px;
+    right: -4px;
     background-color: #dc3545;
     color: #fff;
     border-radius: 50%;
