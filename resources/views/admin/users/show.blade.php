@@ -44,9 +44,9 @@
                         {{-- <a href="#" class="btn btn-secondary btn-lg">
                             <i class="bx bx-user-pin me-2"></i> Impersonate
                         </a> --}}
-                        <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#deleteUserModal">
+                        {{-- <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#deleteUserModal">
                             <i class="bx bx-trash me-2"></i> Delete User
-                        </button>
+                        </button> --}}
                         <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary btn-lg">
                             <i class="bx bx-arrow-back me-2"></i> Back to Users
                         </a>

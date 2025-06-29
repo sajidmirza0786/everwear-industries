@@ -10,6 +10,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Mail\OrderInvoiceMail;
+use Illuminate\Support\Facades\Mail;
 
 class CheckoutController extends Controller
 {
@@ -160,7 +162,6 @@ class CheckoutController extends Controller
                 : session()->forget('cart');
 
             DB::commit();
-
             return redirect()->route('order.confirmation', $order)->with('success', 'Order placed successfully!');
 
         } catch (\Throwable $e) {
@@ -173,9 +174,9 @@ class CheckoutController extends Controller
     {
         // ✅ Restrict access to only the user who placed the order
         if (Auth::check() && $order->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized access to order.');
+            return abort(403, 'Unauthorized access to order.');
         }
-        $order = $order->with('items.product')->first();
+        Mail::to($order->user->email)->send(new OrderInvoiceMail($order->load('items.product')));
 
         return view('users.order-confirmation', compact('order'));
     }

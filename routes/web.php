@@ -11,14 +11,9 @@ Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
-// Route::get('/dashboard', function () {
-//     return view('dashboard');
-// })->middleware(['auth', 'verified'])->name('dashboard');
-
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
-
 
 Route::view('about-us', 'users.about')->name('about');
 Route::view('shipping-policy','users.shipping_policy')->name('shipping_policy');
@@ -29,6 +24,7 @@ Route::view('videos', 'users.videos')->name('videos');
 Route::controller(PageController::class)->group(function(){
     Route::get('onjewel/{slug?}', 'listing')->name('listing');
     Route::post('enquiry-store', 'storeEnquiry')->name('storeEnquiry');
+    Route::get('test-mail', 'testMail')->name('testMail');
 });
 
 Route::controller(CartController::class)->prefix('cart')->name('cart.')->group(function(){

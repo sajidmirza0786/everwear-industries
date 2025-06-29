@@ -49,7 +49,7 @@
                 @endif
 
                 {{-- Validation errors summary --}}
-                @if($errors->any())
+                {{-- @if($errors->any())
                     <div class="alert alert-danger">
                         <strong>Whoops!</strong> Please fix the following issues:
                         <ul class="mb-0 mt-2">
@@ -58,7 +58,7 @@
                             @endforeach
                         </ul>
                     </div>
-                @endif
+                @endif --}}
 
                 <form action="{{ route('storeEnquiry') }}" method="POST" novalidate>
                     @csrf

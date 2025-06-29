@@ -6,6 +6,8 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Enquiry;
 use Illuminate\Support\Facades\DB;
+use App\Mail\TestMail;
+use Illuminate\Support\Facades\Mail;
 
 class PageController extends Controller
 {
@@ -86,6 +88,16 @@ class PageController extends Controller
             }
         } else {
             return redirect(route('contact'));
+        }
+    }
+
+    public function testMail() {
+        $recipientEmail = 'cypwebtechs@gmail.com';
+        try {
+            Mail::to($recipientEmail)->send(new TestMail());
+            return back()->with('success', "Test email sent to " . $recipientEmail . "!");
+        } catch (\Exception $e) {
+            return "Failed to send email: " . $e->getMessage();
         }
     }
 

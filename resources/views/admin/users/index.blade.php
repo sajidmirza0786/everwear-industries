@@ -48,7 +48,7 @@
             </div>
 
             <div class="table-responsive">
-                <table class="table table-hover table-bordered align-middle table-sm">
+                <table class="table table-hover table-bordered align-middle table-sm small">
                     <thead class="table-light">
                         <tr>
                             <th scope="col">#</th>
@@ -56,7 +56,8 @@
                             <th scope="col">Name</th>
                             <th scope="col">Email</th>
                             <th scope="col">Mobile</th>
-                            <th scope="col">User Type</th>
+                            <th scope="col">State</th>
+                            <th scope="col">City</th>
                             <th scope="col">Status</th>
                             <th scope="col">CreatedAt</th>
                             <th scope="col">Actions</th>
@@ -78,11 +79,8 @@
                                 <td>{{ $user->name }}</td>
                                 <td>{{ $user->email }}</td>
                                 <td>{{ $user->mobile }}</td>
-                                <td>
-                                    <span class="badge bg-{{ $user->user_type == 'admin' ? 'danger' : ($user->user_type == 'employee' ? 'info' : 'primary') }}">
-                                        {{ ucfirst($user->user_type) }}
-                                    </span>
-                                </td>
+                                <td>{{ $user->state??'NA' }}</td>
+                                <td>{{ $user->city??'NA' }}</td>
                                 <td>
                                     @if($user->status == 'enable')
                                         <span class="badge bg-success">Enabled</span>
@@ -101,33 +99,16 @@
                                         <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-warning btn-sm" title="Edit User">
                                             <i class="bx bx-edit"></i> 
                                         </a>
-                                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteUserModal-{{ $user->id }}" title="Delete User">
-                                            <i class="bx bx-trash"></i> 
-                                        </button>
+                                        {{-- <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone!');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" data-bs-original-title="Delete user" title="Delete Category">
+                                                <i class="bx bx-trash"></i>
+                                            </button>
+                                        </form> --}}
                                     </div>
                                 </td>
                             </tr>
-
-                            {{-- Delete Confirmation Modal for each user --}}
-                            <div class="modal fade" id="deleteUserModal-{{ $user->id }}" tabindex="-1" aria-labelledby="deleteUserModalLabel-{{ $user->id }}" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" class="modal-content">
-                                        @csrf
-                                        @method('DELETE')
-                                        <div class="modal-header bg-danger text-white">
-                                            <h5 class="modal-title" id="deleteUserModalLabel-{{ $user->id }}">Confirm Deletion</h5>
-                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            Are you sure you want to delete user "<strong>{{ $user->name }}</strong>"? This action cannot be undone.
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                            <button type="submit" class="btn btn-danger">Delete User</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
                         @empty
                             <tr>
                                 <td colspan="9" class="text-center py-4 text-muted">No users found.</td>
@@ -144,32 +125,4 @@
         </div>
     </div>
 </div>
-@endsection
-
-@section('styles')
-{{-- Removed Bootstrap Icons CDN link as requested --}}
-<style>
-    .card {
-        border-radius: 0.75rem;
-        overflow: hidden;
-    }
-    .card-header {
-        border-bottom: 0;
-        padding: 1rem 1.5rem;
-    }
-    .table-hover tbody tr:hover {
-        background-color: #f2f2f2;
-    }
-    /* Style for profile picture placeholder */
-    .bg-light.rounded-circle {
-        border: 1px solid #dee2e6;
-    }
-    .modal-header .btn-close-white {
-        filter: invert(1) grayscale(100%) brightness(200%);
-    }
-</style>
-@endsection
-
-@section('scripts')
-    {{-- No specific JavaScript for this table, but you can add custom scripts here --}}
 @endsection
