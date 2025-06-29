@@ -4,25 +4,31 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\Admin\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Route::get('/dashboard', function () {
+//     return view('dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 
 Route::view('about-us', 'users.about')->name('about');
 Route::view('shipping-policy','users.shipping_policy')->name('shipping_policy');
 Route::view('contact-us', 'users.contact')->name('contact');
+Route::view('videos', 'users.videos')->name('videos');
 
 
 Route::controller(PageController::class)->group(function(){
     Route::get('onjewel/{slug?}', 'listing')->name('listing');
-    Route::get('videos', 'videos')->name('videos');
+    Route::post('enquiry-store', 'storeEnquiry')->name('storeEnquiry');
 });
 
 Route::controller(CartController::class)->prefix('cart')->name('cart.')->group(function(){
@@ -71,4 +77,6 @@ Route::namespace('App\Http\Controllers\Admin')->middleware(['auth','admin'])->pr
     Route::resource('users', UserController::class);
     Route::resource('shippingcharges', ShippingChargesController::class);
     Route::resource('orders', OrderController::class);
+    Route::resource('videos', VideoController::class);
+    Route::resource('enquiries', EnquiryController::class);
 });

@@ -119,6 +119,32 @@
                 </li>
             </ul>
         </li>
+        
+        <li class="menu-item {{ request()->routeIs('admin.enquiries.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.enquiries.index') }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-help-circle"></i>
+                <div data-i18n="Dashboard">Enquiries</div>
+            </a>
+        </li>
+
+        <li class="menu-item {{ request()->routeIs('admin.videos.*') ? 'active open' : '' }}">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-video-plus"></i> 
+                <div data-i18n="videos">Video</div>
+            </a>
+            <ul class="menu-sub">
+                <li class="menu-item {{ request()->routeIs('admin.videos.index') ? 'active' : '' }}">
+                    <a href="{{ route('admin.videos.index') }}" class="menu-link">
+                        <div data-i18n="View videos">View Video</div>
+                    </a>
+                </li>
+                <li class="menu-item {{ request()->routeIs('admin.videos.create') || request()->routeIs('admin.videos.edit') ? 'active' : '' }}">
+                    <a href="{{ route('admin.videos.create') }}" class="menu-link">
+                        <div data-i18n="Add New Video">Add Video</div>
+                    </a>
+                </li>
+            </ul>
+        </li>
         @endif
     </ul>
 </aside>

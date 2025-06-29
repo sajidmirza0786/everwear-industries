@@ -29,37 +29,91 @@
         </div>
 
         <div class="row px-xl-5 justify-content-center">
-            <!-- Contact Form -->
-            <div class="col-lg-6 mb-5">
-                <div class="bg-white p-4 rounded-lg shadow-sm">
-                    <form action="" method="POST" novalidate>
-                        @csrf
-                        <div class="form-group mb-4">
-                            <label for="name" class="form-label font-weight-semibold">Your Name</label>
-                            <input type="text" class="form-control rounded" id="name" name="name" placeholder="Enter your name" required>
-                        </div>
-                        <div class="form-group mb-4">
-                            <label for="phone" class="form-label font-weight-semibold">Your Mobile</label>
-                            <input type="text" class="form-control rounded" id="phone" name="phone" placeholder="Enter your mobile number" required>
-                        </div>
-                        <div class="form-group mb-4">
-                            <label for="email" class="form-label font-weight-semibold">Your Email</label>
-                            <input type="email" class="form-control rounded" id="email" name="email" placeholder="Enter your email" required>
-                        </div>
-                        <div class="form-group mb-4">
-                            <label for="subject" class="form-label font-weight-semibold">Subject</label>
-                            <input type="text" class="form-control rounded" id="subject" name="subject" placeholder="Enter subject" required>
-                        </div>
-                        <div class="form-group mb-4">
-                            <label for="message" class="form-label font-weight-semibold">Message</label>
-                            <textarea class="form-control rounded" id="message" name="message" rows="5" placeholder="Your message" required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary px-5 rounded">
-                            <i class="fas fa-paper-plane mr-2"></i>Send Message
-                        </button>
-                    </form>
-                </div>
+            <!-- Contact Form --><div class="col-lg-6 mb-5">
+            <div class="bg-white p-4 rounded-lg shadow-sm">
+
+                {{-- Session error message --}}
+                @if(session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ session('error') }}
+                        <button type="button" class="close" data-bs-dismiss="alert" aria-label="Close">×</button>
+                    </div>
+                @endif
+
+                {{-- Session success message --}}
+                @if(session('success'))
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        {{ session('success') }}
+                        <button type="button" class="close" data-bs-dismiss="alert" aria-label="Close">×</button>
+                    </div>
+                @endif
+
+                {{-- Validation errors summary --}}
+                @if($errors->any())
+                    <div class="alert alert-danger">
+                        <strong>Whoops!</strong> Please fix the following issues:
+                        <ul class="mb-0 mt-2">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <form action="{{ route('storeEnquiry') }}" method="POST" novalidate>
+                    @csrf
+
+                    <div class="form-group mb-4">
+                        <label for="name" class="form-label font-weight-semibold">Your Name</label>
+                        <input type="text" class="form-control rounded @error('name') is-invalid @enderror" 
+                               id="name" name="name" value="{{ old('name') }}" placeholder="Enter your name" required>
+                        @error('name')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label for="mobile" class="form-label font-weight-semibold">Your Mobile</label>
+                        <input type="text" class="form-control rounded @error('mobile') is-invalid @enderror" 
+                               id="mobile" name="mobile" value="{{ old('mobile') }}" placeholder="Enter your mobile number" required>
+                        @error('mobile')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label for="email" class="form-label font-weight-semibold">Your Email</label>
+                        <input type="email" class="form-control rounded @error('email') is-invalid @enderror" 
+                               id="email" name="email" value="{{ old('email') }}" placeholder="Enter your email" required>
+                        @error('email')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label for="subject" class="form-label font-weight-semibold">Subject</label>
+                        <input type="text" class="form-control rounded @error('subject') is-invalid @enderror" 
+                               id="subject" name="subject" value="{{ old('subject') }}" placeholder="Enter subject" required>
+                        @error('subject')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label for="message" class="form-label font-weight-semibold">Message</label>
+                        <textarea class="form-control rounded @error('message') is-invalid @enderror" 
+                                  id="message" name="message" rows="5" placeholder="Your message" required>{{ old('message') }}</textarea>
+                        @error('message')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
+
+                    <button type="submit" class="btn btn-primary px-5 rounded">
+                        <i class="fas fa-paper-plane mr-2"></i>Send Message
+                    </button>
+                </form>
             </div>
+        </div>
 
             <!-- Contact Info -->
             <div class="col-lg-6 mb-5">
