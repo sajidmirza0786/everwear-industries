@@ -138,6 +138,13 @@
                                     </div>
                                 @endif
                             </div>
+                            <div class="col-md-12">
+                                <label for="video_url" class="form-label">Video Url</label>
+                                <input type="text" class="form-control @error('video_url') is-invalid @enderror" id="video_url" name="video_url" value="{{ old('video_url', $product->video_url ?? '') }}" placeholder="Optimize for search engines">
+                                @error('video_url')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
 
                         <h6 class="mt-4 mb-3 font-weight-bolder text-info text-gradient">SEO Information (Optional)</h6>

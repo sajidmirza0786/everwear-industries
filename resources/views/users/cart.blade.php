@@ -2,214 +2,299 @@
 
 @section('seo')
     <title>Shopping Cart | On Jewel</title>
-    <meta name="description" content="View and manage your shopping cart. Securely proceed to checkout with your selected items.">
+    <meta name="description"
+        content="View and manage your shopping cart. Securely proceed to checkout with your selected items.">
 @endsection
 
 @section('content')
-    <!-- Page Header Start -->
-    <div class="container-fluid bg-secondary text-white mb-5">
-        <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 150px">
-            <h1 class="display-4 font-weight-bold text-uppercase mb-3">Cart</h1>
-            <div class="d-inline-flex">
-                <p class="m-0"><a href="{{ url('/') }}" class="text-dark">Home</a></p>
-                <p class="m-0 px-2 text-dark">-</p>
-                <p class="m-0 text-dark">Cart</p>
-            </div>
+
+    <style>
+        @media (max-width: 991.98px) {
+            body {
+                padding-bottom: 56px!important;
+            }
+        }
+    </style>
+    
+    {{-- Breadcrumb --}}
+    <div class="border-bottom-soft py-2 mb-0">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0" style="font-size:0.75rem;">
+                    <li class="breadcrumb-item">
+                        <a href="{{ route('welcome') }}" class="text-decoration-none text-soft">
+                            <i class="bi bi-house"></i> Home
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active fw-medium" aria-current="page">Cart</li>
+                </ol>
+            </nav>
         </div>
     </div>
-    <!-- Page Header End -->
 
-    <!-- Notifications -->
+    {{-- Page Hero --}}
+    <div class="page-hero" style="padding: 28px 0 22px;">
+        <div class="container d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+                <span class="section-eyebrow">Your Selection</span>
+                <h1 style="font-size: clamp(1.6rem, 4vw, 2.4rem); margin-bottom: 0;">
+                    Shopping Cart
+                    @if (count($cartItems))
+                        <span
+                            style="font-family: var(--font-body); font-size: 14px; font-weight: 500; color: var(--soft); margin-left: 10px;">({{ count($cartItems) }}
+                            item{{ count($cartItems) !== 1 ? 's' : '' }})</span>
+                    @endif
+                </h1>
+            </div>
+            <a href="{{ url('/') }}" class="btn btn-ghost btn-sm">
+                <i class="bi bi-arrow-left me-2"></i> Continue Shopping
+            </a>
+        </div>
+    </div>
+
+    {{-- Notifications --}}
     @if (session('success'))
-        <div class="container-xl py-3">
+        <div class="container mt-3">
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">×</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         </div>
     @endif
     @if (session('error'))
-        <div class="container-xl py-3">
+        <div class="container mt-3">
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 {{ session('error') }}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">×</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         </div>
     @endif
     @if (session('warnings'))
-        <div class="container-xl py-3">
+        <div class="container mt-3">
             <div class="alert alert-warning alert-dismissible fade show" role="alert">
                 {{ session('warnings') }}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">×</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         </div>
     @endif
 
-    {{-- Desktop Cart Content --}}
-    <div class="container py-2 d-none d-lg-block">
-        <div class="row g-4">
-            <div class="col-lg-8">
-                <div class="card shadow-sm rounded-3">
-                    <div class="card-header bg-light d-flex justify-content-between">
-                        <h5 class="mb-0 fw-bold small">Cart Items ({{ count($cartItems) }})</h5>
-                        <h5 class="mb-0 fw-bold small text-end">
-                            Total: <strong>₹{{ number_format($total + $totalShipping, 2) }}</strong>
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        @if(count($cartItems))
-                            <div class="table-responsive">
-                                <table class="table align-middle small">
-                                    <thead class="bg-light text-uppercase text-muted small">
-                                        <tr>
-                                            <th>Product</th>
-                                            <th>Price</th>
-                                            <th>Qty</th>
-                                            <th>Shipping</th>
-                                            <th>Total</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($cartItems as $item)
-                                            @php
-                                            $product = App\Models\Product::whereId($item->product_id)->first();
-                                            @endphp
-                                            <tr>
-                                                <td class="d-flex align-items-center gap-2">
-                                                    <img src="{{ url(Storage::url($product->image ?? '')) }}" class="rounded" width="50" height="50" style="object-fit: cover;"> 
-                                                    <a href="{{ route('listing', $product) }}" class="text-dark text-decoration-none px-2">
-                                                        {{ $product->name }}
-                                                    </a>
-                                                </td>
-                                                <td>₹{{ number_format($item->price, 2) }}</td>
-                                                <td>
-                                                    <form method="POST" action="{{ route('cart.update') }}">
-                                                        @csrf
-                                                        <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                                        <div class="input-group input-group-sm flex-nowrap" style="width: 150px;">
-                                                            <button type="button" class="btn btn-outline-dark btn-sm px-2" onclick="updateQty(this, 'down')">−</button>
-                                                            <input type="number" name="quantity" value="{{ $item->quantity }}" min="1" class="form-control form-control-sm text-center border-start-0 border-end-0" readonly>
-                                                            <button type="button" class="btn btn-outline-dark btn-sm px-2" onclick="updateQty(this, 'up')">+</button>
-                                                        </div>
-                                                    </form>
-                                                </td>
-                                                <td>₹{{ number_format($item->shipping_charge, 2) }}</td>
-                                                {{-- <td>₹{{ number_format(($item->quantity * $item->price) + $item->shipping_charge, 2) }}</td> --}}
-                                                <td>
-                                                    <form method="POST" action="{{ route('cart.remove') }}">
-                                                        @csrf
-                                                        <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                                        <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
-                                                    </form>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        @else
-                            <div class="text-center py-2">
-                                <i class="fas fa-shopping-cart fa-2x text-muted mb-3"></i>
-                                <p class="text-muted">Your cart is empty.</p>
-                                <a href="{{ url('/') }}" class="btn btn-primary rounded">Continue Shopping</a>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="card shadow-sm rounded-3 sticky-top" style="top: 80px;">
-                    <div class="card-header bg-light">
-                        <h5 class="fw-bold mb-0 small">Summary</h5>
-                    </div>
-                    <div class="card-body small">
-                        <div class="d-flex justify-content-between mb-2">
-                            <strong>Subtotal</strong>
-                            <strong>₹{{ number_format($total, 2) }}</strong>
-                        </div>
-                        <div class="d-flex justify-content-between mb-3">
-                            <strong>Shipping</strong>
-                            <span>₹{{ number_format($totalShipping, 2) }}</span>
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between mb-4 fw-bold">
-                            <strong>Total</strong>
-                            <strong class="text-primary">₹{{ number_format($total + $totalShipping, 2) }}</strong>
-                        </div>
-                        <a href="{{ route('checkout') }}" class="btn btn-primary w-100 py-2 small {{ count($cartItems) ? '' : 'disabled' }}">Proceed to Checkout</a>
-                    </div>
-                </div>
+    {{-- EMPTY STATE --}}
+    @if (!count($cartItems))
+        <div class="container section-tight text-center">
+            <div style="max-width: 380px; margin: 0 auto;">
+                <i class="bi bi-bag-x"
+                    style="font-size: 3rem; color: var(--soft-2); display: block; margin-bottom: 16px;"></i>
+                <h4 style="font-family: var(--font-display);">Your cart is empty</h4>
+                <p class="text-soft" style="font-size: 14px;">Looks like you haven't added anything yet. Explore our
+                    collection and find something you love.</p>
+                <a href="{{ url('/') }}" class="btn btn-dark mt-3">Browse Collection</a>
             </div>
         </div>
-    </div>
+    @else
+        {{-- MAIN CART CONTENT --}}
+        <div class="container py-4">
+            <div class="row g-4 align-items-start">
 
-    {{-- Mobile Cart View --}}
-    <div class="container py-2 d-lg-none">
-        @if(count($cartItems))
-            @foreach($cartItems as $item)
-                <div class="card shadow-sm mb-3">
-                    <div class="card-body d-flex gap-3 p-2">
-                        <img src="{{ url(Storage::url($product->image ?? '')) }}" class="rounded" width="80" height="80" style="object-fit: cover;">
-                        <div class="flex-grow-1 px-2">
-                            <h6 class="mb-1 small">{{ $product->name }}</h6>
-                            <div class="d-flex justify-content-between small">
-                                <strong>₹{{ number_format($item->price, 2) }}</strong>
-                                <span>Shipping: ₹{{ number_format($item->shipping_charge, 2) }}</span>
-                            </div>
-                            <div class="mt-2">
-                                <form method="POST" action="{{ route('cart.update') }}">
-                                    @csrf
-                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                    <div class="input-group input-group-sm">
-                                        <button type="button" class="btn btn-outline-dark btn-sm" onclick="updateQty(this, 'down')">-</button>
-                                        <input type="number" name="quantity" value="{{ $item->quantity }}" min="1" class="form-control text-center" readonly>
-                                        <button type="button" class="btn btn-outline-dark btn-sm" onclick="updateQty(this, 'up')">+</button>
+                {{-- LEFT: Cart Items --}}
+                <div class="col-12 col-lg-8">
+
+                    {{-- DESKTOP TABLE — hidden on mobile --}}
+                    <div class="d-none d-md-block">
+                        <table class="table align-middle" style="font-size: 13px;">
+                            <thead style="border-bottom: 1px solid var(--line-strong);">
+                                <tr
+                                    style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--soft);">
+                                    <th class="fw-normal py-3 ps-0" style="width: 45%;">Product</th>
+                                    <th class="fw-normal py-3 text-end">Price</th>
+                                    <th class="fw-normal py-3 text-center">Qty</th>
+                                    <th class="fw-normal py-3 text-end">Shipping</th>
+                                    <th class="fw-normal py-3 text-end pe-0"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($cartItems as $item)
+                                    @php $product = App\Models\Product::whereId($item->product_id)->first(); @endphp
+                                    <tr style="border-bottom: 1px solid var(--line);">
+                                        <td class="py-4 ps-0">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <a href="{{ route('listing', $product) }}" class="flex-shrink-0"
+                                                    style="display: block; width: 72px; height: 90px; overflow: hidden; background: var(--surface);">
+                                                    <img src="{{ url(Storage::url($product->image ?? '')) }}"
+                                                        style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease;"
+                                                        onmouseover="this.style.transform='scale(1.05)'"
+                                                        onmouseout="this.style.transform='scale(1)'"
+                                                        alt="{{ $product->name }}">
+                                                </a>
+                                                <div>
+                                                    <a href="{{ route('listing', $product) }}"
+                                                        class="product-title d-block mb-1">{{ $product->name }}</a>
+                                                    <span
+                                                        style="font-size: 11px; color: var(--soft-2); letter-spacing: 0.08em; text-transform: uppercase;">SKU
+                                                        #{{ $product->id }}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-end" style="font-weight: 600; white-space: nowrap;">
+                                            ₹{{ number_format($item->price, 2) }}</td>
+                                        <td class="text-center">
+                                            <form method="POST" action="{{ route('cart.update') }}">
+                                                @csrf
+                                                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                                <div class="qty-stepper mx-auto" style="width: 110px;">
+                                                    <button type="button" onclick="updateQty(this, 'down')"
+                                                        aria-label="Decrease">−</button>
+                                                    <input type="number" name="quantity" value="{{ $item->quantity }}"
+                                                        min="1" readonly>
+                                                    <button type="button" onclick="updateQty(this, 'up')"
+                                                        aria-label="Increase">+</button>
+                                                </div>
+                                            </form>
+                                        </td>
+                                        <td class="text-end" style="color: var(--soft); white-space: nowrap;">
+                                            ₹{{ number_format($item->shipping_charge, 2) }}</td>
+                                        <td class="text-end pe-0">
+                                            <form method="POST" action="{{ route('cart.remove') }}">
+                                                @csrf
+                                                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                                <button type="submit" class="icon-btn"
+                                                    style="width: 36px; height: 36px; font-size: 15px;"
+                                                    title="Remove item">
+                                                    <i class="bi bi-trash" style="color: var(--soft);"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {{-- MOBILE CARDS — shown only on mobile --}}
+                    <div class="d-md-none d-flex flex-column gap-3">
+                        @foreach ($cartItems as $item)
+                            @php $product = App\Models\Product::whereId($item->product_id)->first(); @endphp
+                            <div style="background: var(--bg); border: 1px solid var(--line); padding: 14px;">
+                                <div class="d-flex gap-3">
+                                    {{-- Product Image --}}
+                                    <a href="{{ route('listing', $product) }}" class="flex-shrink-0"
+                                        style="display: block; width: 80px; height: 100px; overflow: hidden; background: var(--surface);">
+                                        <img src="{{ url(Storage::url($product->image ?? '')) }}"
+                                            style="width: 100%; height: 100%; object-fit: cover;"
+                                            alt="{{ $product->name }}">
+                                    </a>
+                                    {{-- Product Details --}}
+                                    <div class="flex-grow-1 d-flex flex-column justify-content-between">
+                                        <div>
+                                            <a href="{{ route('listing', $product) }}" class="product-title d-block mb-1"
+                                                style="font-size: 13px;">{{ $product->name }}</a>
+                                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                                <span
+                                                    style="font-size: 14px; font-weight: 600;">₹{{ number_format($item->price, 2) }}</span>
+                                                <span
+                                                    style="font-size: 12px; color: var(--soft);">+₹{{ number_format($item->shipping_charge, 2) }}
+                                                    ship</span>
+                                            </div>
+                                        </div>
+                                        {{-- Qty + Remove --}}
+                                        <div class="d-flex align-items-center justify-content-between mt-3">
+                                            <form method="POST" action="{{ route('cart.update') }}">
+                                                @csrf
+                                                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                                <div class="qty-stepper">
+                                                    <button type="button" onclick="updateQty(this, 'down')">−</button>
+                                                    <input type="number" name="quantity" value="{{ $item->quantity }}"
+                                                        min="1" readonly>
+                                                    <button type="button" onclick="updateQty(this, 'up')">+</button>
+                                                </div>
+                                            </form>
+                                            <form method="POST" action="{{ route('cart.remove') }}">
+                                                @csrf
+                                                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                                <button type="submit"
+                                                    style="background: transparent; border: none; font-size: 12px; color: var(--soft); letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; padding: 0; display: inline-flex; align-items: center; gap: 5px;">
+                                                    <i class="bi bi-trash" style="font-size: 14px;"></i> Remove
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
-                                </form>
-                                <form method="POST" action="{{ route('cart.remove') }}" class="mt-2">
-                                    @csrf
-                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                    <button class="btn btn-sm btn-outline-danger w-100"><i class="fas fa-trash me-1"></i> Remove</button>
-                                </form>
+                                </div>
                             </div>
+                        @endforeach
+                    </div>
+
+                </div>
+
+                {{-- RIGHT: Order Summary — sticks on desktop, inline on mobile --}}
+                <div class="col-12 col-lg-4">
+                    <div class="cart-summary d-none d-lg-block">
+                        <h6 class="section-eyebrow mb-4">Order Summary</h6>
+
+                        <div class="row-line">
+                            <span style="color: var(--soft); font-size: 14px;">Subtotal</span>
+                            <span style="font-size: 14px;">₹{{ number_format($total, 2) }}</span>
                         </div>
+                        <div class="row-line">
+                            <span style="color: var(--soft); font-size: 14px;">Shipping</span>
+                            <span style="font-size: 14px;">₹{{ number_format($totalShipping, 2) }}</span>
+                        </div>
+                        <div class="row-line total">
+                            <span>Total</span>
+                            <span>₹{{ number_format($total + $totalShipping, 2) }}</span>
+                        </div>
+
+                        <a href="{{ route('checkout') }}" class="btn btn-dark w-100 mt-4"
+                            style="letter-spacing: 0.1em; text-transform: uppercase; font-size: 13px; padding: 16px;">
+                            Proceed to Checkout
+                        </a>
+                        <p
+                            style="font-size: 11px; color: var(--soft-2); text-align: center; margin-top: 12px; letter-spacing: 0.06em;">
+                            Secure checkout · All taxes included</p>
                     </div>
                 </div>
-            @endforeach
-        @else
-            <div class="text-center py-2">
-                <i class="fas fa-shopping-cart fa-2x text-muted mb-3"></i>
-                <p class="text-muted">Your cart is empty.</p>
-                <a href="{{ url('/') }}" class="btn btn-primary rounded">Continue Shopping</a>
-            </div>
-        @endif
-    </div>
 
-    {{-- Mobile Footer --}}
-    <div class="mobile-cart-footer d-lg-none fixed-bottom bg-white shadow py-1 border-top">
-        <div class="container d-flex justify-content-between align-items-center">
-            <div>
-                <div class="fw-bold">
-                    <strong>₹{{ number_format($total + $totalShipping, 2) }}</strong>
-                </div>
-                <small class="text-muted">{{ count($cartItems) }} item{{ count($cartItems) !== 1 ? 's' : '' }}</small>
             </div>
-            <a href="{{ route('checkout') }}" class="btn btn-primary px-4 {{ count($cartItems) ? '' : 'disabled' }}">Checkout</a>
         </div>
-    </div>
+
+        {{-- Spacer so page content is never hidden behind the sticky bar + mobile nav --}}
+        <div class="d-lg-none" style="height: 130px;" aria-hidden="true"></div>
+
+        {{-- MOBILE STICKY FOOTER --}}
+        {{-- Sits directly above .mobile-bottom-nav (fixed, ~56px tall in your CSS).          --}}
+        {{-- We use bottom: calc(56px + env(safe-area-inset-bottom, 0px)) for iOS notch safe  --}}
+        <div class="d-lg-none px-3"
+            style="
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 91;
+        background: var(--bg);
+        border-top: 1px solid var(--line-strong);
+        box-shadow: 0 -2px 16px rgba(26,20,16,0.09);
+    ">
+            <div class="d-flex align-items-center justify-content-between gap-3">
+                <div>
+                    <div
+                        style="font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--soft-2); margin-bottom: 1px;">
+                        Total</div>
+                    <div style="font-family: var(--font-display); font-size: 22px; font-weight: 500; line-height: 1.1;">
+                        ₹{{ number_format($total + $totalShipping, 2) }}</div>
+                    <div style="font-size: 11px; color: var(--soft); margin-top: 1px;">incl.
+                        ₹{{ number_format($totalShipping, 2) }} shipping</div>
+                </div>
+                <a href="{{ route('checkout') }}" class="btn btn-dark flex-shrink-0"
+                    style="letter-spacing: 0.1em; text-transform: uppercase; font-size: 12px; padding: 14px 22px;">
+                    Checkout <i class="bi bi-arrow-right ms-2"></i>
+                </a>
+            </div>
+        </div>
+    @endif
 
     <script>
         function updateQty(btn, action) {
             const input = btn.parentNode.querySelector('input[name="quantity"]');
             if (action === 'up') input.stepUp();
-            else input.stepDown();
+            else if (input.value > 1) input.stepDown();
             btn.closest('form').submit();
         }
     </script>

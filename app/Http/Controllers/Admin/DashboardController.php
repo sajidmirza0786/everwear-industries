@@ -17,8 +17,13 @@ class DashboardController extends Controller
      */
     public function index()
     {
+        $user = auth()->user();
+        if($user->user_type !== "admin") {
+            $orders = $user->orders()->withCount('items')->latest()->paginate(5);
+            return view('dashboard', compact('user', 'orders'));
+        }
+
         try {
-            // --- Fetching Top Metric Card Data ---
 
             // Total Orders: Count of all orders
             $totalOrders = Order::count();
@@ -88,7 +93,7 @@ class DashboardController extends Controller
 
 
             // Pass all the fetched data to the dashboard view
-            return view('dashboard', compact(
+            return view('admin.dashboard', compact(
                 'totalOrders',
                 'totalRevenue',
                 'newCustomers',
@@ -103,8 +108,6 @@ class DashboardController extends Controller
             ));
 
         } catch (\Throwable $e) {
-            // Log the error for debugging
-            Log::error("Dashboard could not be loaded: " . $e->getMessage());
 
             // Optionally redirect or show a friendly error page
             return redirect()->back()->with('error', 'Dashboard could not be loaded. Please try again later.');

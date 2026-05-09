@@ -132,7 +132,7 @@ if(!function_exists('calculateShippingCharge')) {
 if(!function_exists('ucategories')) {
     function ucategories()
     {
-        return Category::where('status', 'enable')->orderByDesc('id')->get();
+        return Category::where('status', 'enable')->whereNull('parent_id')->latest()->take(8)->get();
     }
 }
 

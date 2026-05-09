@@ -6,122 +6,121 @@
 @endsection
 
 @section('content')
-    <!-- Page Header -->
-    <div class="container-fluid bg-secondary text-dark mb-5">
-        <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 150px;">
-            <h1 class="display-5 text-uppercase font-weight-bold">Order Confirmation</h1>
-            <nav>
-                <ol class="breadcrumb justify-content-center bg-transparent">
-                    <li class="breadcrumb-item"><a href="{{ url('/') }}" class="text-dark">Home</a></li>
-                    <li class="breadcrumb-item text-dark active">Order Confirmation</li>
-                </ol>
-            </nav>
-        </div>
+
+{{-- Page Header --}}
+<div class="page-hero text-center">
+    <div class="container">
+        <p class="crumbs mb-2">
+            <a href="{{ url('/') }}" class="text-soft">Home</a>
+            <span class="mx-2 text-soft">—</span>
+            <span>Order Confirmation</span>
+        </p>
+        <h1 class="section-title mb-0">Order Confirmation</h1>
     </div>
+</div>
 
-    <!-- Notifications -->
-    @if (session('success'))
-        <div class="container">
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle mr-2"></i>{{ session('success') }}
-                <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
-            </div>
-        </div>
-    @endif
-    @if (session('error'))
-        <div class="container">
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-circle mr-2"></i>{{ session('error') }}
-                <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
-            </div>
-        </div>
-    @endif
+{{-- Alerts --}}
+@if(session('success'))
+<div class="container pt-4">
+    <div class="alert alert-success alert-dismissible fade show rounded-0 border-0 border-start border-4 border-success" role="alert">
+        <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+</div>
+@endif
+@if(session('error'))
+<div class="container pt-4">
+    <div class="alert alert-danger alert-dismissible fade show rounded-0 border-0 border-start border-4 border-danger" role="alert">
+        <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+</div>
+@endif
 
-    <!-- Order Confirmation -->
-    <div class="container pb-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-8 col-md-12">
-                <div class="bg-white p-4 p-md-5 rounded shadow-sm">
-                    <div class="text-center mb-4">
-                        <i class="fas fa-check-circle text-success display-4 mb-2"></i>
-                        <h3 class="font-weight-bold">Thank You for Your Order!</h3>
-                        <p class="text-muted">Your order <strong>#{{ $order->id }}</strong> has been placed successfully.</p>
+{{-- Main Content --}}
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center g-0">
+            <div class="col-12 col-lg-9 col-xl-8">
+
+                {{-- Success Banner --}}
+                <div class="oc-success-banner d-flex flex-column flex-sm-row align-items-center gap-4 p-4 p-md-5 mb-4 mb-md-5">
+                    <div class="oc-check-circle flex-shrink-0">
+                        <i class="bi bi-check-lg"></i>
                     </div>
+                    <div class="text-center text-sm-start">
+                        <p class="section-eyebrow mb-1">Order Confirmed</p>
+                        <h2 class="mb-1" style="font-size: clamp(1.6rem, 3vw, 2.2rem);">Thank You for Your Order!</h2>
+                        <p class="text-soft mb-0" style="font-size: 14px;">
+                            Order <strong class="text-ink">#{{ $order->id }}</strong> has been placed successfully. We'll send updates to <strong class="text-ink">{{ $order->email }}</strong>.
+                        </p>
+                    </div>
+                </div>
 
-                    <h5 class="mb-3">Order Summary</h5>
-                    <div class="table-responsive mb-4">
-                        <table class="table table-bordered text-center table-sm">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th>Product</th>
-                                    <th>Qty</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                <div class="row g-4 align-items-start">
+
+                    {{-- Left col: Items + Address --}}
+                    <div class="col-12 col-md-7">
+
+                        {{-- Order Items --}}
+                        <div class="dash-card mb-4">
+                            <p class="section-eyebrow mb-3">Order Summary</p>
+                            <div class="oc-item-list">
                                 @foreach($order->items as $item)
-                                    <tr>
-                                        <td>{{ $item->product->name }}</td>
-                                        <td>{{ $item->quantity }}</td>
-                                        <td>₹{{ number_format($item->quantity * $item->price, 2) }}</td>
-                                    </tr>
+                                <div class="oc-item-row">
+                                    <div class="oc-item-info">
+                                        <span class="oc-fw-500 d-block" style="font-size: 14px; color: var(--ink);">{{ $item->product->name }}</span>
+                                        <span class="text-soft" style="font-size: 12px;">Qty: {{ $item->quantity }}</span>
+                                    </div>
+                                    <span class="oc-fw-500" style="font-size: 14px; white-space: nowrap;">₹{{ number_format($item->quantity * $item->price, 2) }}</span>
+                                </div>
                                 @endforeach
-                            </tbody>
-                        </table>
+                            </div>
+                        </div>
+
+                        {{-- Shipping Address --}}
+                        <div class="dash-card">
+                            <p class="section-eyebrow mb-3">Delivery Address</p>
+                            <p class="mb-1 oc-fw-500" style="font-size: 14px;">{{ $order->name }}</p>
+                            <p class="text-soft mb-1" style="font-size: 13px; line-height: 1.8;">
+                                {{ $order->address }}, {{ $order->locality }}<br>
+                                {{ $order->city }}, {{ $order->state }} – {{ $order->zipcode }}
+                            </p>
+                            <p class="text-soft mb-0" style="font-size: 13px;">
+                                <i class="bi bi-phone me-1"></i>{{ $order->mobile }}
+                            </p>
+                        </div>
+
                     </div>
 
-                    <div class="border-top pt-3">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Subtotal:</span>
-                            <strong>₹{{ number_format($order->total, 2) }}</strong>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Shipping:</span>
-                            <strong>₹{{ number_format($order->shipping_charge, 2) }}</strong>
-                        </div>
-                        <div class="d-flex justify-content-between border-top pt-2 mb-0">
-                            <h5 class="mb-0">Total:</h5>
-                            <h5 class="mb-0">₹{{ number_format($order->total + $order->shipping_charge, 2) }}</h5>
+                    {{-- Right col: Bill + CTA --}}
+                    <div class="col-12 col-md-5">
+                        <div class="cart-summary">
+                            <p class="section-eyebrow mb-3">Bill</p>
+
+                            <div class="row-line">
+                                <span class="text-soft">Subtotal</span>
+                                <span>₹{{ number_format($order->total, 2) }}</span>
+                            </div>
+                            <div class="row-line">
+                                <span class="text-soft">Shipping</span>
+                                <span>₹{{ number_format($order->shipping_charge, 2) }}</span>
+                            </div>
+                            <div class="row-line total">
+                                <span>Total</span>
+                                <span>₹{{ number_format($order->total + $order->shipping_charge, 2) }}</span>
+                            </div>
+
+                            <a href="{{ url('/') }}" class="btn btn-dark w-100 mt-4" style="letter-spacing: 0.1em; text-transform: uppercase; font-size: 12px; padding: 14px;">
+                                <i class="bi bi-bag me-2"></i>Continue Shopping
+                            </a>
                         </div>
                     </div>
 
-                    <hr class="my-4">
-
-                    <h5 class="mb-3">Shipping Address</h5>
-                    <p class="mb-1"><strong>{{ $order->name }}</strong></p>
-                    <p class="mb-1">{{ $order->address }}, {{ $order->locality }}</p>
-                    <p class="mb-1">{{ $order->city }}, {{ $order->state }} - {{ $order->zipcode }}</p>
-                    <p class="mb-1">Mobile: {{ $order->mobile }}</p>
-                    <p class="mb-3">Email: {{ $order->email }}</p>
-
-                    <div class="text-center mt-4">
-                        <a href="{{ url('/') }}" class="btn btn-primary px-4 py-2 rounded-pill shadow">
-                            <i class="fas fa-shopping-bag mr-2"></i> Continue Shopping
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
+</section>
 
-    <style>
-        .breadcrumb-item + .breadcrumb-item::before {
-            content: "-";
-            color: #fff;
-        }
-
-        .table th, .table td {
-            vertical-align: middle;
-        }
-
-        @media (max-width: 767px) {
-            .table {
-                font-size: 0.9rem;
-            }
-            .btn {
-                font-size: 1rem;
-                padding: 0.5rem 1rem;
-            }
-        }
-    </style>
 @endsection

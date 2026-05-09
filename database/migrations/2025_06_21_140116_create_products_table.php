@@ -29,6 +29,7 @@ return new class extends Migration
             $table->enum('status', ['enable', 'disable'])->default('enable');
             $table->string('description')->nullable();
             $table->text('long_description')->nullable();
+            $table->text('video_url')->nullable();
             $table->softDeletes();
             $table->timestamps();
 

@@ -6,7 +6,6 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Storage;
@@ -14,20 +13,17 @@ use Illuminate\Support\Facades\Storage;
 class CategoryController extends Controller
 {
     /**
-     * Display a listing of the admin.categories.
+     * Display a listing of categories.
      */
     public function index(Request $request)
     {
         $query = Category::query();
 
-        // Handle search by name
-        if ($request->has('search') && !empty($request->search)) {
-            $search = $request->search;
-            $query->where('name', 'like', '%' . $search . '%');
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%');
         }
 
-        // Order by name for consistency
-        $categories = $query->orderByDesc('id')->paginate(10); 
+        $categories = $query->orderByDesc('id')->paginate(10);
 
         return view('admin.categories.index', compact('categories'));
     }
@@ -38,6 +34,7 @@ class CategoryController extends Controller
     public function create()
     {
         $categories = Category::whereNull('parent_id')->get();
+
         return view('admin.categories.create', compact('categories'));
     }
 
@@ -47,48 +44,40 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name',
-            'slug' => 'nullable|string|unique:categories,slug',
-            'parent_id' => 'nullable|exists:categories,id',
-            'image' => 'nullable|image',
-            'hsn' => 'nullable|string',
-            'title' => 'nullable|string',
-            'keyword' => 'nullable|string',
-            'description' => 'nullable|string',
+            'name'             => 'required|string|max:255|unique:categories,name',
+            'parent_id'        => 'nullable|exists:categories,id',
+            'image'            => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'hsn'              => 'nullable|string|max:50',
+            'title'            => 'nullable|string|max:255',
+            'keyword'          => 'nullable|string|max:500',
+            'description'      => 'nullable|string|max:500',
             'long_description' => 'nullable|string',
-            'status' => 'in:enable,disable',
+            'status'           => 'in:enable,disable',
         ]);
 
         DB::beginTransaction();
-        try{
-            $validated['slug'] = str()->slug($validated['name']) . '-' . str()->uuid();
+        try {
+            $validated['slug'] = Str::slug($validated['name']) . '-' . Str::uuid();
 
             if ($request->hasFile('image')) {
-                
-                $image = $request->file('image');
-                
-                // Create a unique name for the image
-                $uniqueName = Str::uuid() . '.' . $image->getClientOriginalExtension();
-                
-                // Resize the image and save it to storage
-                $imagePath = 'categories/' . $uniqueName; 
-                $image = Image::make($image)->resize(800, 800);
-
-                // Save the image to the storage folder
-                $image->save(storage_path('app/public/' . $imagePath));
-
-                // Store the relative path to the image in the database
-                $validated['image'] = $imagePath;
+                $validated['image'] = $this->handleImageUpload($request->file('image'));
             }
 
             Category::create($validated);
 
             DB::commit();
-            return redirect()->route('admin.categories.index')->with('success', 'Category created successfully.');
+
+            return redirect()
+                ->route('admin.categories.index')
+                ->with('success', 'Category created successfully.');
+
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Category Store Error: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Failed to create category. Please try again.');
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Failed to create category. Please try again.');
         }
     }
 
@@ -97,7 +86,10 @@ class CategoryController extends Controller
      */
     public function edit(Category $category)
     {
-        $categories = Category::where('id', '!=', $category->id)->whereNull('parent_id')->get();
+        $categories = Category::where('id', '!=', $category->id)
+                               ->whereNull('parent_id')
+                               ->get();
+
         return view('admin.categories.create', compact('category', 'categories'));
     }
 
@@ -107,54 +99,39 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
-            'slug' => 'nullable|string|unique:categories,slug,' . $category->id,
-            'parent_id' => 'nullable|exists:categories,id',
-            'image' => 'nullable|image',
-            'hsn' => 'nullable|string',
-            'title' => 'nullable|string',
-            'keyword' => 'nullable|string',
-            'description' => 'nullable|string',
+            'name'             => 'required|string|max:255|unique:categories,name,' . $category->id,
+            'parent_id'        => 'nullable|exists:categories,id',
+            'image'            => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'hsn'              => 'nullable|string|max:50',
+            'title'            => 'nullable|string|max:255',
+            'keyword'          => 'nullable|string|max:500',
+            'description'      => 'nullable|string|max:500',
             'long_description' => 'nullable|string',
-            'status' => 'in:enable,disable',
+            'status'           => 'in:enable,disable',
         ]);
 
         DB::beginTransaction();
         try {
-            
-            //$validated['slug'] = str()->slug($validated['name']) . '-' . str()->uuid();
-
             if ($request->hasFile('image')) {
-
-                // Check if the product has an old image, and delete it if it exists
-                if (!empty($category->image) && Storage::disk('public')->exists($category->image)) {
-                    Storage::disk('public')->delete($category->image);
-                }
-                
-                $image = $request->file('image');
-                
-                // Create a unique name for the image
-                $uniqueName = Str::uuid() . '.' . $image->getClientOriginalExtension();
-                
-                // Resize the image and save it to storage
-                $imagePath = 'categories/' . $uniqueName; 
-                $image = Image::make($image)->resize(800, 800);
-
-                // Save the image to the storage folder
-                $image->save(storage_path('app/public/' . $imagePath));
-
-                // Store the relative path to the image in the database
-                $validated['image'] = $imagePath;
+                $this->deleteImage($category->image);
+                $validated['image'] = $this->handleImageUpload($request->file('image'));
             }
 
             $category->update($validated);
 
             DB::commit();
-            return redirect()->route('admin.categories.index')->with('success', 'Category updated successfully.');
+
+            return redirect()
+                ->route('admin.categories.index')
+                ->with('success', 'Category updated successfully.');
+
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Category Update Error: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Failed to update category. Please try again.');
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Failed to update category. Please try again.');
         }
     }
 
@@ -173,17 +150,65 @@ class CategoryController extends Controller
     {
         DB::beginTransaction();
         try {
-            // Check if the product has an old image, and delete it if it exists
-            if (!empty($category->image) && Storage::disk('public')->exists($category->image)) {
-                Storage::disk('public')->delete($category->image);
-            }
+            $this->deleteImage($category->image);
+
             $category->delete();
+
             DB::commit();
-            return redirect()->route('admin.categories.index')->with('success', 'Category deleted successfully.');
+
+            return redirect()
+                ->route('admin.categories.index')
+                ->with('success', 'Category deleted successfully.');
+
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Category Delete Error: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Failed to delete category. Please try again.');
+
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to delete category. Please try again.');
+        }
+    }
+
+    // =========================================================
+    //  Private Helpers
+    // =========================================================
+
+    /**
+     * Resize the uploaded image and store it via Storage disk.
+     * Returns the stored relative path.
+     *
+     * @param  \Illuminate\Http\UploadedFile  $file
+     * @param  int  $width
+     * @param  int  $height
+     * @return string
+     */
+    private function handleImageUpload($file, int $width = 800, int $height = 800): string
+    {
+        $filename  = Str::uuid() . '.' . $file->getClientOriginalExtension();
+        $directory = 'categories';
+
+        $image = Image::make($file)
+            ->resize($width, $height, function ($constraint) {
+                $constraint->aspectRatio();
+                $constraint->upsize();
+            })
+            ->encode($file->getClientOriginalExtension());
+
+        Storage::disk('public')->put($directory . '/' . $filename, (string) $image);
+
+        return $directory . '/' . $filename;
+    }
+
+    /**
+     * Delete an image from the public disk if it exists.
+     *
+     * @param  string|null  $path
+     * @return void
+     */
+    private function deleteImage(?string $path): void
+    {
+        if ($path && Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
         }
     }
 }

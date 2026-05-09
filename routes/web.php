@@ -17,12 +17,14 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 
 Route::view('about-us', 'users.about')->name('about');
 Route::view('shipping-policy','users.shipping_policy')->name('shipping_policy');
+Route::view('return-exchange-policy','users.return_policy')->name('return_policy');
+Route::view('customer-service','users.customer_service')->name('customer_service');
 Route::view('contact-us', 'users.contact')->name('contact');
 Route::view('videos', 'users.videos')->name('videos');
 
 
 Route::controller(PageController::class)->group(function(){
-    Route::get('onjewel/{slug?}', 'listing')->name('listing');
+    Route::get('products/{slug?}', 'listing')->name('listing');
     Route::post('enquiry-store', 'storeEnquiry')->name('storeEnquiry');
     Route::get('test-mail', 'testMail')->name('testMail');
 });
