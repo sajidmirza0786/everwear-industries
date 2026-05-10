@@ -222,6 +222,33 @@
                         <div class="pd-divider"></div>
                     @endif
 
+                    @php
+                        $colorsvrs = App\Models\Product::where('color_group_id', $product->color_group_id)
+                            ->where('id', '!=', $product->id)
+                            ->get();
+                    @endphp
+
+                    @if ($colorsvrs->isNotEmpty())
+                        <div class="pd-color-variants-wrap">
+                            <div class="pd-label">Color Variants</div>
+                            <div class="pd-color-swatches">
+                                @foreach ($colorsvrs as $colorVariant)
+                                    <a href="{{ route('listing', $colorVariant) }}" class="pd-color-swatch"
+                                        title="{{ $colorVariant->color ?? $colorVariant->name }}">
+                                        <span class="pd-color-swatch-img">
+                                            <img src="{{ \Storage::url($colorVariant->image) }}"
+                                                alt="{{ $colorVariant->name }}" loading="lazy">
+                                        </span>
+                                        @if ($colorVariant->color)
+                                            <span class="pd-color-swatch-label">{{ $colorVariant->color }}</span>
+                                        @endif
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                        <div class="pd-divider"></div>
+                    @endif
+
                     {{-- Cart Form --}}
                     <form action="{{ route('cart.add') }}" method="POST" id="pdCartForm">
                         @csrf
@@ -973,6 +1000,67 @@
             display: flex;
             align-items: center;
             gap: 5px;
+        }
+
+        /* ── Color Variants ── */
+        .pd-color-variants-wrap {
+            margin-bottom: 4px;
+        }
+
+        .pd-color-swatches {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .pd-color-swatch {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .pd-color-swatch-img {
+            display: block;
+            width: 64px;
+            height: 64px;
+            border: 1.5px solid var(--line-strong);
+            overflow: hidden;
+            background: var(--surface);
+            transition: border-color 0.18s, opacity 0.18s;
+            opacity: 0.72;
+        }
+
+        .pd-color-swatch-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .pd-color-swatch:hover .pd-color-swatch-img {
+            border-color: var(--ink);
+            opacity: 1;
+        }
+
+        .pd-color-swatch-label {
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--soft-2);
+            text-align: center;
+            max-width: 64px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: color 0.18s;
+        }
+
+        .pd-color-swatch:hover .pd-color-swatch-label {
+            color: var(--ink);
         }
     </style>
     <script>

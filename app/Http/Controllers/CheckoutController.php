@@ -198,15 +198,15 @@ class CheckoutController extends Controller
                     'price'                => $item->price,
                 ]);
 
-                if ($atrId) {
-                    // Decrement variant stock
-                    ProductAttribute::where('id', $atrId)
-                        ->decrement('stock', $item->quantity);
-                } else {
-                    // Decrement base product stock
-                    Product::where('id', $item->product_id)
-                        ->decrement('stock', $item->quantity);
-                }
+                // if ($atrId) {
+                //     // Decrement variant stock
+                //     ProductAttribute::where('id', $atrId)
+                //         ->decrement('stock', $item->quantity);
+                // } else {
+                //     // Decrement base product stock
+                //     Product::where('id', $item->product_id)
+                //         ->decrement('stock', $item->quantity);
+                // }
             }
 
             // ── Clear cart ──
