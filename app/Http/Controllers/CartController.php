@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 class CartController extends Controller
 {
     // ── Shared helper: resolve product, attribute, stock, price from request ──
-    private function resolveItem(Request $request): array
+    private function resolveItem(Request $request): array|string
     {
         $atr     = null;
         $product = null;
@@ -21,10 +21,10 @@ class CartController extends Controller
             $product = $atr->product;
 
             if ($product->id !== (int) $request->product_id) {
-                abort(422, 'Invalid product variant.');
+                return 'Invalid product variant selected.';
             }
             if ($atr->status !== 'enable') {
-                abort(422, 'This variant is currently unavailable.');
+                return 'This variant is currently unavailable.';
             }
 
             $availableStock = $atr->stock;
@@ -33,7 +33,7 @@ class CartController extends Controller
             $product = Product::findOrFail($request->product_id);
 
             if ($product->attributes()->where('status', 'enable')->exists()) {
-                abort(422, 'Please select a size/variant before adding to cart.');
+                return 'Please select a size/variant before adding to cart.';
             }
 
             $availableStock = $product->stock;
@@ -69,8 +69,14 @@ class CartController extends Controller
             'product_attribute_id' => 'nullable|exists:product_attributes,id',
         ]);
 
+        $resolved = $this->resolveItem($request);
+
+        if (is_string($resolved)) {
+            return back()->with('error', $resolved);
+        }
+
         ['product' => $product, 'atr' => $atr, 'availableStock' => $availableStock, 'sellingPrice' => $sellingPrice]
-            = $this->resolveItem($request);
+            = $resolved;
 
         if ($availableStock < $request->quantity) {
             return back()->with('error', 'Insufficient stock available for ' . $product->name);
