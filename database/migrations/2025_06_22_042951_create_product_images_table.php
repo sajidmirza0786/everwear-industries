@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // product images 
         Schema::create('product_images', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->references('id')->on('products')
