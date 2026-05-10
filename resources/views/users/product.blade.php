@@ -1063,310 +1063,270 @@
             color: var(--ink);
         }
     </style>
-    <script>
-        (function() {
-            var track = document.getElementById('pdTrack');
-            var wrap = document.getElementById('pdCarouselWrap');
-            var thumbs = Array.from(document.querySelectorAll('.pd-thumb'));
-            var dots = Array.from(document.querySelectorAll('.pd-dot'));
-            var btnPrev = document.getElementById('pdPrev');
-            var btnNext = document.getElementById('pdNext');
 
-            if (!track) return;
+<script>
+(function () {
+    /* ════════════════════════════════════════
+       CAROUSEL
+    ════════════════════════════════════════ */
+    var track   = document.getElementById('pdTrack');
+    var wrap    = document.getElementById('pdCarouselWrap');
+    var thumbs  = Array.from(document.querySelectorAll('.pd-thumb'));
+    var dots    = Array.from(document.querySelectorAll('.pd-dot'));
+    var btnPrev = document.getElementById('pdPrev');
+    var btnNext = document.getElementById('pdNext');
 
-            var slides = Array.from(track.children);
-            var total = slides.length;
-            var current = 0;
-            var animating = false;
+    if (track) {
+        var slides    = Array.from(track.children);
+        var total     = slides.length;
+        var current   = 0;
+        var animating = false;
 
-            /* ── Height sync ── */
-            function syncHeight() {
-                var img = slides[current].querySelector('img:not(.yt-poster)') ||
-                    slides[current].querySelector('img');
-                if (!img) return;
-                if (img.complete && img.naturalHeight > 0) {
-                    var w = wrap.offsetWidth;
-                    var h = Math.round(w * img.naturalHeight / img.naturalWidth);
-                    wrap.style.height = h + 'px';
-                    slides.forEach(function(s) {
-                        s.style.height = h + 'px';
-                    });
-                } else {
-                    img.addEventListener('load', syncHeight, {
-                        once: true
-                    });
-                }
+        function syncHeight() {
+            var img = slides[current].querySelector('img:not(.yt-poster)') ||
+                      slides[current].querySelector('img');
+            if (!img) return;
+            if (img.complete && img.naturalHeight > 0) {
+                var w = wrap.offsetWidth;
+                var h = Math.round(w * img.naturalHeight / img.naturalWidth);
+                wrap.style.height = h + 'px';
+                slides.forEach(function (s) { s.style.height = h + 'px'; });
+            } else {
+                img.addEventListener('load', syncHeight, { once: true });
             }
-            window.addEventListener('load', syncHeight);
-            window.addEventListener('resize', syncHeight);
-            syncHeight();
+        }
+        window.addEventListener('load', syncHeight);
+        window.addEventListener('resize', syncHeight);
+        syncHeight();
 
-            if (total <= 1) return;
+        function removeIframe() {
+            var existing = wrap.querySelector('.pd-iframe-wrap');
+            if (existing) existing.remove();
+        }
 
-            /* ── Remove any open iframe ── */
-            function removeIframe() {
-                var existing = wrap.querySelector('.pd-iframe-wrap');
-                if (existing) existing.remove();
-            }
+        function setSlide(index) {
+            if (animating || index === current) return;
+            removeIframe();
+            animating = true;
+            current   = index;
+            track.style.transform = 'translateX(-' + (current * 100) + '%)';
+            dots.forEach(function (d, i)   { d.classList.toggle('active', i === current); });
+            thumbs.forEach(function (t, i) { t.classList.toggle('active', i === current); });
+            setTimeout(function () { syncHeight(); animating = false; }, 400);
+        }
 
-            /* ── Go to slide ── */
-            function setSlide(index) {
-                if (animating || index === current) return;
-                removeIframe(); // close video if open when navigating away
-                animating = true;
-                current = index;
-                track.style.transform = 'translateX(-' + (current * 100) + '%)';
-                dots.forEach(function(d, i) {
-                    d.classList.toggle('active', i === current);
-                });
-                thumbs.forEach(function(t, i) {
-                    t.classList.toggle('active', i === current);
-                });
-                setTimeout(function() {
-                    syncHeight();
-                    animating = false;
-                }, 400);
-            }
-
-            btnPrev && btnPrev.addEventListener('click', function() {
+        if (total > 1) {
+            btnPrev && btnPrev.addEventListener('click', function () {
                 setSlide((current - 1 + total) % total);
             });
-            btnNext && btnNext.addEventListener('click', function() {
+            btnNext && btnNext.addEventListener('click', function () {
                 setSlide((current + 1) % total);
             });
-
-            dots.forEach(function(dot, i) {
-                dot.addEventListener('click', function() {
-                    setSlide(i);
-                });
+            dots.forEach(function (dot, i) {
+                dot.addEventListener('click', function () { setSlide(i); });
             });
-            thumbs.forEach(function(thumb, i) {
-                thumb.addEventListener('click', function() {
-                    setSlide(i);
-                });
+            thumbs.forEach(function (thumb, i) {
+                thumb.addEventListener('click', function () { setSlide(i); });
             });
 
-            /* ── Swipe ── */
-            var tx = 0,
-                ty = 0;
-            wrap.addEventListener('touchstart', function(e) {
+            /* Swipe */
+            var tx = 0, ty = 0;
+            wrap.addEventListener('touchstart', function (e) {
                 tx = e.changedTouches[0].clientX;
                 ty = e.changedTouches[0].clientY;
-            }, {
-                passive: true
-            });
-            wrap.addEventListener('touchend', function(e) {
+            }, { passive: true });
+            wrap.addEventListener('touchend', function (e) {
                 var dx = e.changedTouches[0].clientX - tx;
                 var dy = e.changedTouches[0].clientY - ty;
                 if (Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(dy)) {
-                    dx < 0 ? setSlide((current + 1) % total) :
-                        setSlide((current - 1 + total) % total);
+                    dx < 0 ? setSlide((current + 1) % total)
+                           : setSlide((current - 1 + total) % total);
                 }
-            }, {
-                passive: true
-            });
+            }, { passive: true });
 
-            /* ── Keyboard ── */
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'ArrowLeft') setSlide((current - 1 + total) % total);
+            /* Keyboard */
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'ArrowLeft')  setSlide((current - 1 + total) % total);
                 if (e.key === 'ArrowRight') setSlide((current + 1) % total);
             });
+        }
 
-            /* ── Video slides: click to play inline ── */
-            slides.forEach(function(slide) {
-                if (slide.dataset.type !== 'video') return;
-                var videoId = slide.dataset.videoId;
-                var videoDiv = slide.querySelector('.pd-video-slide');
-                if (!videoDiv) return;
+        /* Video slides */
+        slides.forEach(function (slide) {
+            if (slide.dataset.type !== 'video') return;
+            var videoId  = slide.dataset.videoId;
+            var videoDiv = slide.querySelector('.pd-video-slide');
+            if (!videoDiv) return;
 
-                videoDiv.addEventListener('click', function() {
-                    // Try embed first, fallback to YouTube if blocked
-                    removeIframe();
+            videoDiv.addEventListener('click', function () {
+                removeIframe();
+                var iw  = document.createElement('div');
+                iw.className = 'pd-iframe-wrap';
 
-                    var iw = document.createElement('div');
-                    iw.className = 'pd-iframe-wrap';
+                var ifr = document.createElement('iframe');
+                ifr.src = 'https://www.youtube-nocookie.com/embed/' + videoId + '?autoplay=1&rel=0';
+                ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+                ifr.allowFullscreen = true;
 
-                    var ifr = document.createElement('iframe');
-                    ifr.src = 'https://www.youtube-nocookie.com/embed/' + videoId + '?autoplay=1&rel=0';
-                    ifr.allow =
-                        'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-                    ifr.allowFullscreen = true;
-
-                    // Detect "video unavailable" and fallback to new tab
-                    ifr.addEventListener('load', function() {
-                        try {
-                            // If blocked, open in new tab instead
-                            var doc = ifr.contentDocument || ifr.contentWindow.document;
-                            if (!doc || doc.body.innerHTML === '') {
-                                removeIframe();
-                                window.open('https://www.youtube.com/watch?v=' + videoId,
-                                    '_blank');
-                            }
-                        } catch (e) {
-                            // cross-origin error is normal, video is loading fine
+                /* postMessage error → open in new tab */
+                window.addEventListener('message', function onMsg(e) {
+                    try {
+                        var data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+                        if (data && ((data.event === 'infoDelivery' && data.info && data.info.error) || data.event === 'onError')) {
+                            removeIframe();
+                            window.open('https://www.youtube.com/watch?v=' + videoId, '_blank');
+                            window.removeEventListener('message', onMsg);
                         }
-                    });
-
-                    var cb = document.createElement('button');
-                    cb.className = 'pd-iframe-close';
-                    cb.innerHTML = '✕';
-                    cb.onclick = function(e) {
-                        e.stopPropagation();
-                        removeIframe();
-                    };
-
-                    iw.appendChild(ifr);
-                    iw.appendChild(cb);
-                    wrap.appendChild(iw);
+                    } catch (err) {}
                 });
+
+                var cb = document.createElement('button');
+                cb.className = 'pd-iframe-close';
+                cb.innerHTML = '✕';
+                cb.onclick = function (e) { e.stopPropagation(); removeIframe(); };
+
+                iw.appendChild(ifr);
+                iw.appendChild(cb);
+                wrap.appendChild(iw);
             });
+        });
+    } // end carousel block
 
-            /* ── Qty stepper ── */
-            /* ── Qty stepper ── */
-            var qtyInput = document.getElementById('pd-qty');
-            if (qtyInput) {
-                var maxQty = parseInt(qtyInput.getAttribute('max')) || 99;
-                document.getElementById('qtyMinus').addEventListener('click', function() {
-                    var v = parseInt(qtyInput.value) || 1;
-                    if (v > 1) qtyInput.value = v - 1;
-                });
-                document.getElementById('qtyPlus').addEventListener('click', function() {
-                    var v = parseInt(qtyInput.value) || 1;
-                    if (v < maxQty) qtyInput.value = v + 1;
-                });
+
+    /* ════════════════════════════════════════
+       QTY STEPPER  — completely independent
+    ════════════════════════════════════════ */
+    var qtyInput = document.getElementById('pd-qty');
+    if (qtyInput) {
+        var qtyMinus = document.getElementById('qtyMinus');
+        var qtyPlus  = document.getElementById('qtyPlus');
+
+        qtyMinus && qtyMinus.addEventListener('click', function () {
+            var v = parseInt(qtyInput.value) || 1;
+            if (v > 1) qtyInput.value = v - 1;
+        });
+        qtyPlus && qtyPlus.addEventListener('click', function () {
+            var v   = parseInt(qtyInput.value) || 1;
+            var max = parseInt(qtyInput.getAttribute('max')) || 9999;
+            if (v < max) qtyInput.value = v + 1;
+        });
+    }
+
+
+    /* ════════════════════════════════════════
+       VARIANT CHIPS  — completely independent
+    ════════════════════════════════════════ */
+    var chips = Array.from(document.querySelectorAll('.pd-variant-chip'));
+
+    if (chips.length) {
+        var atrInput      = document.getElementById('pdAtrInput');
+        var addBtn        = document.getElementById('pdAddBtn');
+        var addBtnText    = document.getElementById('pdAddBtnText');
+        var priceEl       = document.getElementById('pdPrice');
+        var mrpEl         = document.getElementById('pdMrp');
+        var saveEl        = document.getElementById('pdSave');
+        var stockMeta     = document.getElementById('pdStockMeta');
+        var stockDot      = document.getElementById('pdStockDot');
+        var stockText     = document.getElementById('pdStockText');
+        var variantDesc   = document.getElementById('pdVariantDesc');
+        var variantReq    = document.getElementById('pdVariantRequired');
+        var qtyField      = document.getElementById('pd-qty');
+        var qtyMinusBtn   = document.getElementById('qtyMinus');
+        var qtyPlusBtn    = document.getElementById('qtyPlus');
+
+        function fmt(n) {
+            return '₹' + parseFloat(n).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+        }
+
+        function updateStock(stock) {
+            var inStock = stock > 0;
+            if (stockMeta) stockMeta.className = inStock ? 'pd-instock' : 'pd-outstock';
+            if (stockDot)  stockDot.className  = 'pd-stock-dot ' + (inStock ? 'pd-stock-dot--in' : 'pd-stock-dot--out');
+            if (stockText) stockText.textContent = inStock ? 'In Stock (' + stock + ' units)' : 'Out of Stock';
+
+            if (qtyField) {
+                qtyField.max      = inStock ? stock : 1;
+                qtyField.disabled = !inStock;
+                qtyField.value    = 1;
             }
+            if (qtyMinusBtn) qtyMinusBtn.disabled = !inStock;
+            if (qtyPlusBtn)  qtyPlusBtn.disabled  = !inStock;
+        }
 
-            /* ── Product Attribute / Variant Chips ── */
-            (function() {
-                var chips = Array.from(document.querySelectorAll('.pd-variant-chip'));
-                if (!chips.length) return;
+        function updateBtn(state) {
+            // state: 'select' | 'instock' | 'outofstock'
+            var enabled = (state === 'instock');
+            if (addBtn) {
+                addBtn.disabled = !enabled;
+                addBtn.classList.toggle('pd-btn-disabled', !enabled);
+            }
+            if (addBtnText) {
+                addBtnText.textContent =
+                    state === 'select'     ? 'Select a Variant' :
+                    state === 'outofstock' ? 'Out of Stock'      : 'Add to Cart';
+            }
+        }
 
-                var atrInput = document.getElementById('pdAtrInput');
-                var addBtn = document.getElementById('pdAddBtn');
-                var addBtnText = document.getElementById('pdAddBtnText');
-                var priceEl = document.getElementById('pdPrice');
-                var mrpEl = document.getElementById('pdMrp');
-                var saveEl = document.getElementById('pdSave');
-                var stockMeta = document.getElementById('pdStockMeta');
-                var stockDot = document.getElementById('pdStockDot');
-                var stockText = document.getElementById('pdStockText');
-                var variantDesc = document.getElementById('pdVariantDesc');
-                var variantRequired = document.getElementById('pdVariantRequired');
-                var qtyMax = document.getElementById('pd-qty');
+        chips.forEach(function (chip) {
+            chip.addEventListener('click', function () {
+                // Block OOS chips
+                if (chip.classList.contains('pd-variant-chip--oos')) return;
 
-                // Format currency like PHP number_format
-                function fmt(n) {
-                    return '₹' + parseFloat(n).toLocaleString('en-IN', {
-                        maximumFractionDigits: 0
-                    });
+                // Deselect all → select clicked
+                chips.forEach(function (c) { c.classList.remove('active'); });
+                chip.classList.add('active');
+
+                var atrId   = chip.dataset.atrId;
+                var mrp     = parseFloat(chip.dataset.mrp)     || 0;
+                var selling = parseFloat(chip.dataset.selling)  || 0;
+                var stock   = parseInt(chip.dataset.stock)      || 0;
+                var desc    = chip.dataset.desc                 || '';
+
+                // Hidden input
+                if (atrInput) atrInput.value = atrId;
+
+                // Price
+                if (priceEl) priceEl.textContent = fmt(selling);
+                if (mrp > selling) {
+                    if (mrpEl)  { mrpEl.textContent  = fmt(mrp);                    mrpEl.style.display  = ''; }
+                    if (saveEl) { saveEl.textContent = 'Save ' + fmt(mrp - selling); saveEl.style.display = ''; }
+                } else {
+                    if (mrpEl)  mrpEl.style.display  = 'none';
+                    if (saveEl) saveEl.style.display = 'none';
                 }
 
-                function setStock(stock, inStock) {
-                    if (inStock) {
-                        stockMeta.className = 'pd-instock';
-                        stockDot.className = 'pd-stock-dot pd-stock-dot--in';
-                        stockText.textContent = 'In Stock (' + stock + ' units)';
-                        if (qtyMax) {
-                            qtyMax.max = stock;
-                            qtyMax.disabled = false;
-                        }
-                    } else {
-                        stockMeta.className = 'pd-outstock';
-                        stockDot.className = 'pd-stock-dot pd-stock-dot--out';
-                        stockText.textContent = 'Out of Stock';
-                        if (qtyMax) {
-                            qtyMax.disabled = true;
-                        }
+                // Stock + qty
+                updateStock(stock);
+
+                // Variant description
+                if (variantDesc) {
+                    variantDesc.textContent  = desc;
+                    variantDesc.style.display = desc ? '' : 'none';
+                }
+
+                // Hide warning
+                if (variantReq) variantReq.style.display = 'none';
+
+                // Button state
+                updateBtn(stock > 0 ? 'instock' : 'outofstock');
+            });
+        });
+
+        /* Guard: block submit if no variant chosen */
+        var cartForm = document.getElementById('pdCartForm');
+        if (cartForm) {
+            cartForm.addEventListener('submit', function (e) {
+                if (!atrInput || !atrInput.value) {
+                    e.preventDefault();
+                    if (variantReq) {
+                        variantReq.style.display = 'flex';
+                        variantReq.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                 }
+            });
+        }
+    } // end chips block
 
-                function setAddBtn(state) {
-                    // state: 'select' | 'instock' | 'outofstock'
-                    addBtn.disabled = (state !== 'instock');
-                    addBtn.classList.toggle('pd-btn-disabled', state !== 'instock');
-                    if (state === 'select') addBtnText.textContent = 'Select a Variant';
-                    if (state === 'instock') addBtnText.textContent = 'Add to Cart';
-                    if (state === 'outofstock') addBtnText.textContent = 'Out of Stock';
-                }
-
-                chips.forEach(function(chip) {
-                    chip.addEventListener('click', function() {
-                        if (chip.classList.contains('pd-variant-chip--oos')) return;
-
-                        // Deselect all, select this
-                        chips.forEach(function(c) {
-                            c.classList.remove('active');
-                        });
-                        chip.classList.add('active');
-
-                        var atrId = chip.dataset.atrId;
-                        var mrp = parseFloat(chip.dataset.mrp);
-                        var selling = parseFloat(chip.dataset.selling);
-                        var stock = parseInt(chip.dataset.stock);
-                        var size = chip.dataset.size;
-                        var desc = chip.dataset.desc;
-
-                        // Update hidden input
-                        atrInput.value = atrId;
-
-                        // Update price display
-                        priceEl.textContent = fmt(selling);
-                        if (mrp > selling) {
-                            mrpEl.textContent = fmt(mrp);
-                            mrpEl.style.display = '';
-                            saveEl.textContent = 'Save ' + fmt(mrp - selling);
-                            saveEl.style.display = '';
-                        } else {
-                            mrpEl.style.display = 'none';
-                            saveEl.style.display = 'none';
-                        }
-
-                        // Update stock
-                        setStock(stock, stock > 0);
-
-                        // Update qty max
-                        if (qtyMax) {
-                            qtyMax.max = stock;
-                            var curVal = parseInt(qtyMax.value) || 1;
-                            if (curVal > stock) qtyMax.value = stock > 0 ? stock : 1;
-                            if (stock <= 0) qtyMax.value = 1;
-                        }
-
-                        // Update variant description
-                        if (variantDesc) {
-                            if (desc) {
-                                variantDesc.textContent = desc;
-                                variantDesc.style.display = '';
-                            } else {
-                                variantDesc.style.display = 'none';
-                            }
-                        }
-
-                        // Hide the "please select" warning
-                        if (variantRequired) variantRequired.style.display = 'none';
-
-                        // Update button
-                        setAddBtn(stock > 0 ? 'instock' : 'outofstock');
-                    });
-                });
-
-                // Guard: prevent form submit without selecting a variant
-                var form = document.getElementById('pdCartForm');
-                if (form) {
-                    form.addEventListener('submit', function(e) {
-                        if (!atrInput.value) {
-                            e.preventDefault();
-                            if (variantRequired) variantRequired.style.display = 'flex';
-                            // Scroll to chips smoothly
-                            document.getElementById('pdVariantsWrap') &&
-                                document.getElementById('pdVariantsWrap').scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'center'
-                                });
-                        }
-                    });
-                }
-            })();
-        })();
-    </script>
+})();
+</script>
 @endsection
