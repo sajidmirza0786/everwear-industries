@@ -125,6 +125,13 @@
                                 @enderror
                             </div>
                             <div class="col-md-6">
+                                <label for="color_group_id" class="form-label">Product Color Group ID (Optional)</label>
+                                <input type="text" class="form-control @error('color_group_id') is-invalid @enderror" id="color_group_id" name="color_group_id" value="{{ old('color_group_id', $product->color_group_id ?? '') }}" placeholder="e.g., Blue, White etc">
+                                @error('color_group_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6">
                                 <label for="image" class="form-label">Product Image (Optional) 
                                     <span class="text-danger">Image size (800*800px)</span></label>
                                 </label>

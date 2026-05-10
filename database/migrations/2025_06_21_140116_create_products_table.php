@@ -30,6 +30,7 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->text('long_description')->nullable();
             $table->text('video_url')->nullable();
+            $table->string('color_group_id')->nullable();
             $table->softDeletes();
             $table->timestamps();
 

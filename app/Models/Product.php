@@ -5,13 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-
 class Product extends Model
 {
     use SoftDeletes;
+
     protected $guarded = [];
 
-    public function getRouteKeyName(){
+    public function getRouteKeyName()
+    {
         return 'slug';
     }
 
@@ -23,5 +24,10 @@ class Product extends Model
     public function images()
     {
         return $this->hasMany(ProductImage::class, 'product_id', 'id');
+    }
+
+    public function attributes()
+    {
+        return $this->hasMany(ProductAttribute::class);
     }
 }

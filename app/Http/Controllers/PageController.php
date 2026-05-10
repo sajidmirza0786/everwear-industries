@@ -13,8 +13,8 @@ class PageController extends Controller
 {
     public function listing(Request $request, $slug = null)
     {
-        try{
-            if($request->filled('search')) {
+        try {
+            if ($request->filled('search')) {
                 $searchTerm = $request->get('search');
                 $products = Product::where('status', 'enable')
                     ->where('name', 'like', "%{$searchTerm}%")
@@ -22,38 +22,35 @@ class PageController extends Controller
                 return view('users.listings', compact('products'));
             }
 
-            // Try finding a category by slug
             $category = Category::where('slug', $slug)
-                                ->where('status', 'enable')
-                                ->first();
+                ->where('status', 'enable')
+                ->first();
 
             if ($category) {
-                // If it's a category, fetch related products
                 $products = Product::where('category_id', $category->id)
-                                   ->where('status', 'enable')
-                                   ->orderByDesc('id')
-                                   ->get();
-
+                    ->where('status', 'enable')
+                    ->orderByDesc('id')
+                    ->get();
                 return view('users.listings', compact('category', 'products'));
             }
 
-            // If not a category, try finding a product
-            $product = Product::where('slug', $slug)
-                              ->where('status', 'enable')
-                              ->first();
+            $product = Product::with(['images', 'attributes' => function ($q) {
+                $q->where('status', 'enable')->orderBy('id');
+            }])
+                ->where('slug', $slug)
+                ->where('status', 'enable')
+                ->first();
 
             if ($product) {
                 $similarProducts = Product::where('category_id', $product->category_id)
                     ->where('id', '!=', $product->id)
                     ->where('status', 'enable')
                     ->inRandomOrder()->limit(8)->get();
-                return view('users.product', compact('product','similarProducts'));
+                return view('users.product', compact('product', 'similarProducts'));
             }
 
-            // If neither found, show 404
             abort(404);
-        } catch (Throwable $e) {
-            Log::error('listing search failled: ' . $e->getMessage());
+        } catch (\Throwable $e) {
             return back()->withErrors('Something went wrong. Please try again.')->withInput();
         }
     }

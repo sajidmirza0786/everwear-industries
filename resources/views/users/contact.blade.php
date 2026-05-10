@@ -62,6 +62,30 @@
                             Fill out the form below and our team will respond as soon as possible.
                         </p>
 
+                        {{-- Validation error summary --}}
+                        @if ($errors->any())
+                            <div
+                                style="background:var(--surface);border-left:3px solid #c0392b;padding:14px 18px;margin-bottom:24px;font-size:14px;color:var(--ink);">
+                                <div style="font-weight:600;margin-bottom:8px;color:#c0392b;">
+                                    <i class="bi bi-exclamation-triangle" style="margin-right:6px;"></i>
+                                    Please fix the following errors:
+                                </div>
+                                <ul style="margin:0;padding-left:18px;">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        @if (session('error'))
+                            <div
+                                style="background:var(--surface);border-left:3px solid var(--accent);padding:14px 18px;margin-bottom:24px;font-size:14px;color:var(--ink);">
+                                <i class="bi bi-check-circle" style="color:var(--accent);margin-right:8px;"></i>
+                                {{ session('error') }}
+                            </div>
+                        @endif
+
                         @if (session('success'))
                             <div
                                 style="background:var(--surface);border-left:3px solid var(--accent);padding:14px 18px;margin-bottom:24px;font-size:14px;color:var(--ink);">
@@ -97,6 +121,15 @@
                                 <input type="email" id="email" name="email" class="form-control mt-1"
                                     placeholder="you@example.com" value="{{ old('email') }}" required>
                                 @error('email')
+                                    <span style="font-size:12px;color:var(--danger);">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="subject">Subject</label>
+                                <input type="subject" id="subject" name="subject" class="form-control mt-1"
+                                    placeholder="subject" value="{{ old('subject') }}" required>
+                                @error('subject')
                                     <span style="font-size:12px;color:var(--danger);">{{ $message }}</span>
                                 @enderror
                             </div>
@@ -166,7 +199,7 @@
                                         style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--soft);margin-bottom:4px;">
                                         Phone / WhatsApp</div>
                                     <a href="tel:+910000000000" style="font-size:14px;color:var(--ink);font-weight:500;">
-                                        {{ settings()->mobile }} <br>  {{ settings()->alt_mobile ?? '' }}
+                                        {{ settings()->mobile }} <br> {{ settings()->alt_mobile ?? '' }}
                                     </a>
                                 </div>
                             </div>
@@ -210,8 +243,8 @@
     </section>
     <style>
         /* ============================================================
-                   PAGE HERO FIX — force light text on dark bg
-                ============================================================ */
+                       PAGE HERO FIX — force light text on dark bg
+                    ============================================================ */
         .page-hero {
             background: var(--ink);
             color: var(--bg);
@@ -251,8 +284,8 @@
         }
 
         /* ============================================================
-                   INFO STRIP (Mon–Sat / Response / WhatsApp)
-                ============================================================ */
+                       INFO STRIP (Mon–Sat / Response / WhatsApp)
+                    ============================================================ */
         .info-strip {
             border-top: 1px solid var(--line);
             border-bottom: 1px solid var(--line);

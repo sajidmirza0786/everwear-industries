@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id')->nullable(); // Nullable for guest users
             $table->unsignedBigInteger('product_id');
+            $table->unsignedBigInteger('product_attribute_id')->nullable();
             $table->string('session_id')->nullable();
             $table->integer('quantity')->default(1);
             $table->decimal('price', 8, 2); // Store price at the time of adding to cart

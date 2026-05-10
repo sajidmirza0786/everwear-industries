@@ -8,7 +8,7 @@
 @section('content')
 
 {{-- Breadcrumb --}}
-<div class="border-bottom py-2 mb-4">
+<div class="border-bottom py-2">
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0" style="font-size:0.78rem;">
@@ -131,7 +131,7 @@
                         <p class="text-soft" style="margin:0;">No address saved yet.</p>
                     @endif
 
-                    <a href="{{ route('profile.edit') }}" class="btn btn-ghost btn-sm mt-3">Edit</a>
+                    {{-- <a href="{{ route('profile.edit') }}" class="btn btn-ghost btn-sm mt-3">Edit</a> --}}
                 </div>
 
                 {{-- Account Settings --}}
@@ -143,21 +143,21 @@
                                 <div style="font-weight:500;">Name</div>
                                 <small class="text-soft">{{ auth()->user()->name }}</small>
                             </div>
-                            <a href="{{ route('profile.edit') }}" class="btn btn-ghost btn-sm">Edit</a>
+                            {{-- <a href="{{ route('profile.edit') }}" class="btn btn-ghost btn-sm">Edit</a> --}}
                         </div>
                         <div class="d-flex justify-content-between align-items-center py-3 border-bottom-soft">
                             <div>
                                 <div style="font-weight:500;">Email</div>
                                 <small class="text-soft">{{ auth()->user()->email }}</small>
                             </div>
-                            <a href="{{ route('profile.edit') }}" class="btn btn-ghost btn-sm">Edit</a>
+                            {{-- <a href="{{ route('profile.edit') }}" class="btn btn-ghost btn-sm">Edit</a> --}}
                         </div>
                         <div class="d-flex justify-content-between align-items-center py-3">
                             <div>
                                 <div style="font-weight:500;">Mobile</div>
                                 <small class="text-soft">{{ auth()->user()->mobile }}</small>
                             </div>
-                            <a href="{{ route('profile.edit') }}" class="btn btn-ghost btn-sm">Edit</a>
+                            {{-- <a href="{{ route('profile.edit') }}" class="btn btn-ghost btn-sm">Edit</a> --}}
                         </div>
                     </div>
                 </div>

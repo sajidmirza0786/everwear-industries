@@ -205,25 +205,25 @@
 
                     {{-- Payment Method --}}
                     {{-- <div style="border-top: 1px solid var(--line); padding-top: 24px; margin-bottom: 24px;"> --}}
-                        {{-- <div
+                    {{-- <div
                             style="font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent-2); font-weight: 600; margin-bottom: 16px;">
                             Payment Method
                         </div> --}}
 
-                        {{-- COD Option --}}
-                        <label for="pay_cod"
-                            style="display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px; border: 1px solid var(--line); background: var(--bg); cursor: pointer; margin-bottom: 10px; transition: border-color 0.2s;">
-                            <input type="hidden" id="pay_cod" name="payment_method" value="cod" checked required
-                                style="margin-top: 2px; accent-color: var(--accent);">
-                            {{-- <div>
+                    {{-- COD Option --}}
+                    <label for="pay_cod"
+                        style="display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px; border: 1px solid var(--line); background: var(--bg); cursor: pointer; margin-bottom: 10px; transition: border-color 0.2s;">
+                        <input type="hidden" id="pay_cod" name="payment_method" value="cod" checked required
+                            style="margin-top: 2px; accent-color: var(--accent);">
+                        {{-- <div>
                                 <div style="font-size: 14px; font-weight: 500;">Cash on Delivery</div>
                                 <div style="font-size: 12px; color: var(--soft); margin-top: 2px;">Pay when your order
                                     arrives at your door.</div>
                             </div> --}}
-                        </label>
+                    </label>
 
-                        {{-- Online Payment Option --}}
-                        {{-- <label for="pay_online"
+                    {{-- Online Payment Option --}}
+                    {{-- <label for="pay_online"
                             style="display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px; border: 1px solid var(--line); background: var(--bg); cursor: pointer; transition: border-color 0.2s;">
                             <input type="radio" id="pay_online" name="payment_method" value="prepaid" required
                                 style="margin-top: 2px; accent-color: var(--accent);">
@@ -257,24 +257,44 @@
 
                     {{-- Items --}}
                     @forelse($cartItems as $item)
+                        @php
+                            $product = isset($item->product)
+                                ? $item->product
+                                : \App\Models\Product::find($item->product_id);
+                            $atrId = $item->product_attribute_id ?? null;
+                            $atr = $atrId ? \App\Models\ProductAttribute::find($atrId) : null;
+                            $variantLabel = $atr ? $atr->size : null;
+                        @endphp
+                        @if (!$product)
+                            @continue
+                        @endif
                         <div
-                            style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line);">
-                            <div style="flex: 1; min-width: 0;">
+                            style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);">
+                            <div style="flex:1;min-width:0;">
                                 <div
-                                    style="font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    {{ $item->product->name ?? $item->name }}</div>
-                                <div style="font-size: 11px; color: var(--soft); margin-top: 2px;">
+                                    style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                    {{ $product->name }}
+                                </div>
+                                @if ($variantLabel)
+                                    <div style="margin-top:3px;">
+                                        <span
+                                            style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2);background:rgba(0,0,0,.05);border:1px solid var(--line-strong);padding:1px 7px;border-radius:2px;">
+                                            {{ $variantLabel }}
+                                        </span>
+                                    </div>
+                                @endif
+                                <div style="font-size:11px;color:var(--soft);margin-top:3px;">
                                     Qty: {{ $item->quantity }} &nbsp;·&nbsp; Ship:
                                     ₹{{ number_format($item->shipping_charge, 2) }}
                                 </div>
                             </div>
-                            <div style="font-size: 13px; font-weight: 600; white-space: nowrap; flex-shrink: 0;">
+                            <div style="font-size:13px;font-weight:600;white-space:nowrap;flex-shrink:0;">
                                 ₹{{ number_format($item->quantity * $item->price + $item->shipping_charge, 2) }}
                             </div>
                         </div>
                     @empty
-                        <div style="text-align: center; padding: 24px 0; color: var(--soft); font-size: 14px;">Your cart is
-                            empty.</div>
+                        <div style="text-align:center;padding:24px 0;color:var(--soft);font-size:14px;">Your cart is empty.
+                        </div>
                     @endforelse
 
                     {{-- Totals --}}
@@ -307,15 +327,32 @@
                     </button>
                     <div style="display: none; border-top: 1px solid var(--line); padding: 12px 16px;">
                         @forelse($cartItems as $item)
+                            @php
+                                $product = isset($item->product)
+                                    ? $item->product
+                                    : \App\Models\Product::find($item->product_id);
+                                $atrId = $item->product_attribute_id ?? null;
+                                $atr = $atrId ? \App\Models\ProductAttribute::find($atrId) : null;
+                                $variantLabel = $atr ? $atr->size : null;
+                            @endphp
+                            @if (!$product)
+                                @continue
+                            @endif
                             <div
-                                style="display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px;">
+                                style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;">
                                 <div>
-                                    <div style="font-weight: 500;">{{ $item->product->name ?? $item->name }}</div>
-                                    <div style="color: var(--soft); font-size: 11px; margin-top: 2px;">Qty:
-                                        {{ $item->quantity }} · Ship: ₹{{ number_format($item->shipping_charge, 2) }}
+                                    <div style="font-weight:500;">{{ $product->name }}</div>
+                                    @if ($variantLabel)
+                                        <span
+                                            style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2);background:rgba(0,0,0,.05);border:1px solid var(--line-strong);padding:1px 7px;border-radius:2px;display:inline-block;margin-top:2px;">
+                                            {{ $variantLabel }}
+                                        </span>
+                                    @endif
+                                    <div style="color:var(--soft);font-size:11px;margin-top:3px;">
+                                        Qty: {{ $item->quantity }} · Ship: ₹{{ number_format($item->shipping_charge, 2) }}
                                     </div>
                                 </div>
-                                <div style="font-weight: 600; white-space: nowrap;">
+                                <div style="font-weight:600;white-space:nowrap;">
                                     ₹{{ number_format($item->quantity * $item->price + $item->shipping_charge, 2) }}
                                 </div>
                             </div>

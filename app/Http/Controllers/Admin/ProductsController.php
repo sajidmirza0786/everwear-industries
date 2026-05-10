@@ -64,6 +64,7 @@ class ProductsController extends Controller
             'description'      => 'nullable|string',
             'long_description' => 'nullable|string',
             'video_url'        => 'nullable|string',
+            'color_group_id'   => 'nullable|string',
         ]);
 
         DB::beginTransaction();
@@ -113,6 +114,7 @@ class ProductsController extends Controller
             'description'      => 'nullable|string',
             'long_description' => 'nullable|string',
             'video_url'        => 'nullable|string',
+            'color_group_id'   => 'nullable|string',
         ]);
 
         DB::beginTransaction();

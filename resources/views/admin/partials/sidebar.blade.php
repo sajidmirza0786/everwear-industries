@@ -101,7 +101,7 @@
             <span class="menu-header-text">Others</span>
         </li>
 
-        <li class="menu-item {{ request()->routeIs('admin.shippingcharges.*') ? 'active open' : '' }}">
+        {{-- <li class="menu-item {{ request()->routeIs('admin.shippingcharges.*') ? 'active open' : '' }}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bxs-ship"></i> 
                 <div data-i18n="shippingcharges">Shipping Charges</div>
@@ -109,7 +109,7 @@
             <ul class="menu-sub">
                 <li class="menu-item {{ request()->routeIs('admin.shippingcharges.index') ? 'active' : '' }}">
                     <a href="{{ route('admin.shippingcharges.index') }}" class="menu-link">
-                        <div data-i18n="View shippingcharges">View Shipping Charges</div> {{-- More descriptive text --}}
+                        <div data-i18n="View shippingcharges">View Shipping Charges</div>
                     </a>
                 </li>
                 <li class="menu-item {{ request()->routeIs('admin.shippingcharges.create') || request()->routeIs('admin.shippingcharges.edit') ? 'active' : '' }}">
@@ -118,7 +118,7 @@
                     </a>
                 </li>
             </ul>
-        </li>
+        </li> --}}
         
         <li class="menu-item {{ request()->routeIs('admin.enquiries.*') ? 'active' : '' }}">
             <a href="{{ route('admin.enquiries.index') }}" class="menu-link">

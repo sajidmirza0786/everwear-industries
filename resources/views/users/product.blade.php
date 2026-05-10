@@ -35,8 +35,15 @@
                             $allImages->push(['type' => 'image', 'src' => url(\Storage::url($img->image_path ?? ''))]);
                         }
                         // Add YouTube video if set
+                        // if ($product->video_url) {
+                        //     preg_match('/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/', $product->video_url, $m);
+                        //     $videoId = $m[1] ?? null;
+                        //     if ($videoId) {
+                        //         $allImages->push(['type' => 'video', 'video_id' => $videoId]);
+                        //     }
+                        // }
                         if ($product->video_url) {
-                            preg_match('/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/', $product->video_url, $m);
+                            preg_match('/(?:v=|youtu\.be\/|shorts\/)([a-zA-Z0-9_-]{11})/', $product->video_url, $m);
                             $videoId = $m[1] ?? null;
                             if ($videoId) {
                                 $allImages->push(['type' => 'video', 'video_id' => $videoId]);
@@ -127,11 +134,16 @@
 
                     <h1 class="pd-title">{{ $product->name }}</h1>
 
-                    <div class="pd-pricing">
-                        <span class="pd-price">₹{{ number_format($product->selling) }}</span>
+                    {{-- Pricing — updated dynamically by JS when an attribute is selected --}}
+                    <div class="pd-pricing" id="pdPricing">
+                        <span class="pd-price" id="pdPrice">₹{{ number_format($product->selling) }}</span>
                         @if ($product->mrp > $product->selling)
-                            <span class="pd-mrp">₹{{ number_format($product->mrp) }}</span>
-                            <span class="pd-save">Save ₹{{ number_format($product->mrp - $product->selling) }}</span>
+                            <span class="pd-mrp" id="pdMrp">₹{{ number_format($product->mrp) }}</span>
+                            <span class="pd-save" id="pdSave">Save
+                                ₹{{ number_format($product->mrp - $product->selling) }}</span>
+                        @else
+                            <span class="pd-mrp" id="pdMrp" style="display:none"></span>
+                            <span class="pd-save" id="pdSave" style="display:none"></span>
                         @endif
                     </div>
 
@@ -143,9 +155,9 @@
                             <dd>{{ $product->code }}</dd>
                         </div>
                         @if ($product->size)
-                            <div class="pd-meta-row">
+                            <div class="pd-meta-row" id="pdSizeRow">
                                 <dt>Size</dt>
-                                <dd>{{ $product->size }}</dd>
+                                <dd id="pdSizeMeta">{{ $product->size }}</dd>
                             </div>
                         @endif
                         @if ($product->color)
@@ -162,14 +174,17 @@
                         @endif
                         <div class="pd-meta-row">
                             <dt>Stock</dt>
-                            <dd class="{{ $product->stock > 0 ? 'pd-instock' : 'pd-outstock' }}">
+                            <dd id="pdStockMeta" class="{{ $product->stock > 0 ? 'pd-instock' : 'pd-outstock' }}">
                                 <span
-                                    class="pd-stock-dot {{ $product->stock > 0 ? 'pd-stock-dot--in' : 'pd-stock-dot--out' }}"></span>
-                                @if ($product->stock > 0)
-                                    In Stock ({{ $product->stock }} units)
-                                @else
-                                    Out of Stock
-                                @endif
+                                    class="pd-stock-dot {{ $product->stock > 0 ? 'pd-stock-dot--in' : 'pd-stock-dot--out' }}"
+                                    id="pdStockDot"></span>
+                                <span id="pdStockText">
+                                    @if ($product->stock > 0)
+                                        In Stock ({{ $product->stock }} units)
+                                    @else
+                                        Out of Stock
+                                    @endif
+                                </span>
                             </dd>
                         </div>
                     </dl>
@@ -180,10 +195,38 @@
 
                     <div class="pd-divider"></div>
 
+                    {{-- ── Product Attributes (Sizes/Variants) ── --}}
+                    @php $attributes = $product->attributes ?? collect(); @endphp
+                    @if ($attributes->count() > 0)
+                        <div class="pd-variants-wrap" id="pdVariantsWrap">
+                            <div class="pd-label">Select Size / Variant</div>
+                            <div class="pd-variant-chips" id="pdVariantChips">
+                                @foreach ($attributes as $atr)
+                                    <button type="button"
+                                        class="pd-variant-chip {{ $atr->stock <= 0 ? 'pd-variant-chip--oos' : '' }}"
+                                        data-atr-id="{{ $atr->id }}" data-mrp="{{ $atr->mrp }}"
+                                        data-selling="{{ $atr->selling_price }}" data-stock="{{ $atr->stock }}"
+                                        data-size="{{ $atr->size }}" data-desc="{{ $atr->description }}"
+                                        {{ $atr->stock <= 0 ? 'title=Out of Stock' : '' }}>
+                                        {{ $atr->size }}
+                                        @if ($atr->stock <= 0)
+                                            <span class="pd-chip-oos-line"></span>
+                                        @endif
+                                    </button>
+                                @endforeach
+                            </div>
+                            @if ($attributes->where('description', '!=', null)->count() > 0)
+                                <p class="pd-variant-desc" id="pdVariantDesc" style="display:none"></p>
+                            @endif
+                        </div>
+                        <div class="pd-divider"></div>
+                    @endif
+
                     {{-- Cart Form --}}
-                    <form action="{{ route('cart.add') }}" method="POST">
+                    <form action="{{ route('cart.add') }}" method="POST" id="pdCartForm">
                         @csrf
                         <input type="hidden" name="product_id" value="{{ $product->id }}">
+                        <input type="hidden" name="product_attribute_id" id="pdAtrInput" value="">
                         <div class="pd-qty-row">
                             <span class="pd-label">Quantity</span>
                             <div class="qty-stepper">
@@ -193,11 +236,28 @@
                                 <button type="button" id="qtyPlus">+</button>
                             </div>
                         </div>
-                        <button type="submit"
-                            class="btn btn-dark btn-lg pd-add-btn {{ $product->stock <= 0 ? 'pd-btn-disabled' : '' }}"
-                            {{ $product->stock <= 0 ? 'disabled' : '' }}>
+
+                        {{-- Show variant-required message if attributes exist and none selected --}}
+                        @if ($attributes->count() > 0)
+                            <p class="pd-variant-required" id="pdVariantRequired" style="display:none">
+                                <i class="bi bi-exclamation-circle"></i> Please select a size/variant before adding to
+                                cart.
+                            </p>
+                        @endif
+
+                        <button type="submit" id="pdAddBtn"
+                            class="btn btn-dark btn-lg pd-add-btn {{ $product->stock <= 0 && $attributes->count() === 0 ? 'pd-btn-disabled' : '' }}"
+                            {{ $product->stock <= 0 && $attributes->count() === 0 ? 'disabled' : '' }}>
                             <i class="bi bi-bag"></i>
-                            {{ $product->stock <= 0 ? 'Out of Stock' : 'Add to Cart' }}
+                            <span id="pdAddBtnText">
+                                @if ($attributes->count() > 0)
+                                    Select a Variant
+                                @elseif ($product->stock <= 0)
+                                    Out of Stock
+                                @else
+                                    Add to Cart
+                                @endif
+                            </span>
                         </button>
                     </form>
 
@@ -796,7 +856,7 @@
         .pd-iframe-wrap {
             position: absolute;
             inset: 0;
-            z-index: 10;
+            z-index: 20;
             background: #000;
         }
 
@@ -811,7 +871,7 @@
             position: absolute;
             top: 8px;
             right: 8px;
-            z-index: 20;
+            z-index: 30;
             background: rgba(0, 0, 0, .6);
             color: #fff;
             border: none;
@@ -839,10 +899,83 @@
             width: 22px;
             height: 22px;
         }
-    </style>
 
+        /* ── Variant Chips ── */
+        .pd-variants-wrap {
+            margin-bottom: 4px;
+        }
+
+        .pd-variant-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+            margin-bottom: 6px;
+        }
+
+        .pd-variant-chip {
+            position: relative;
+            padding: 7px 18px;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            border: 1.5px solid var(--line-strong);
+            background: var(--surface);
+            color: var(--ink);
+            cursor: pointer;
+            transition: border-color 0.18s, background 0.18s, color 0.18s, opacity 0.18s;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow: hidden;
+        }
+
+        .pd-variant-chip:hover:not(.pd-variant-chip--oos) {
+            border-color: var(--ink);
+            background: var(--bg-2);
+        }
+
+        .pd-variant-chip.active {
+            border-color: var(--ink);
+            border-width: 2px;
+            background: var(--ink);
+            color: var(--bg);
+        }
+
+        .pd-variant-chip--oos {
+            opacity: 0.42;
+            cursor: not-allowed;
+            color: var(--soft-2);
+        }
+
+        /* Diagonal strikethrough line for OOS chips */
+        .pd-chip-oos-line {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom right,
+                    transparent calc(50% - 0.5px),
+                    var(--soft-2) calc(50% - 0.5px),
+                    var(--soft-2) calc(50% + 0.5px),
+                    transparent calc(50% + 0.5px));
+            pointer-events: none;
+        }
+
+        .pd-variant-desc {
+            font-size: 12.5px;
+            color: var(--soft);
+            margin: 6px 0 0;
+            line-height: 1.5;
+        }
+
+        .pd-variant-required {
+            font-size: 12.5px;
+            color: #a8412c;
+            margin: 0 0 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
     <script>
-        
         (function() {
             var track = document.getElementById('pdTrack');
             var wrap = document.getElementById('pdCarouselWrap');
@@ -858,15 +991,15 @@
             var current = 0;
             var animating = false;
 
-            /* ── Height sync: carousel wrap height = current image natural height ── */
+            /* ── Height sync ── */
             function syncHeight() {
-                var img = slides[current].querySelector('img');
+                var img = slides[current].querySelector('img:not(.yt-poster)') ||
+                    slides[current].querySelector('img');
                 if (!img) return;
                 if (img.complete && img.naturalHeight > 0) {
                     var w = wrap.offsetWidth;
                     var h = Math.round(w * img.naturalHeight / img.naturalWidth);
                     wrap.style.height = h + 'px';
-                    /* also fix all slide heights so track doesn't collapse */
                     slides.forEach(function(s) {
                         s.style.height = h + 'px';
                     });
@@ -876,16 +1009,22 @@
                     });
                 }
             }
-
-            /* Sync height on load and resize */
             window.addEventListener('load', syncHeight);
             window.addEventListener('resize', syncHeight);
             syncHeight();
 
             if (total <= 1) return;
 
+            /* ── Remove any open iframe ── */
+            function removeIframe() {
+                var existing = wrap.querySelector('.pd-iframe-wrap');
+                if (existing) existing.remove();
+            }
+
+            /* ── Go to slide ── */
             function setSlide(index) {
                 if (animating || index === current) return;
+                removeIframe(); // close video if open when navigating away
                 animating = true;
                 current = index;
                 track.style.transform = 'translateX(-' + (current * 100) + '%)';
@@ -895,7 +1034,6 @@
                 thumbs.forEach(function(t, i) {
                     t.classList.toggle('active', i === current);
                 });
-                /* sync height to new slide after transition */
                 setTimeout(function() {
                     syncHeight();
                     animating = false;
@@ -914,14 +1052,13 @@
                     setSlide(i);
                 });
             });
-
             thumbs.forEach(function(thumb, i) {
                 thumb.addEventListener('click', function() {
                     setSlide(i);
                 });
             });
 
-            /* Touch/swipe */
+            /* ── Swipe ── */
             var tx = 0,
                 ty = 0;
             wrap.addEventListener('touchstart', function(e) {
@@ -934,19 +1071,70 @@
                 var dx = e.changedTouches[0].clientX - tx;
                 var dy = e.changedTouches[0].clientY - ty;
                 if (Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(dy)) {
-                    dx < 0 ? setSlide((current + 1) % total) : setSlide((current - 1 + total) % total);
+                    dx < 0 ? setSlide((current + 1) % total) :
+                        setSlide((current - 1 + total) % total);
                 }
             }, {
                 passive: true
             });
 
-            /* Keyboard */
+            /* ── Keyboard ── */
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'ArrowLeft') setSlide((current - 1 + total) % total);
                 if (e.key === 'ArrowRight') setSlide((current + 1) % total);
             });
 
-            /* Qty stepper */
+            /* ── Video slides: click to play inline ── */
+            slides.forEach(function(slide) {
+                if (slide.dataset.type !== 'video') return;
+                var videoId = slide.dataset.videoId;
+                var videoDiv = slide.querySelector('.pd-video-slide');
+                if (!videoDiv) return;
+
+                videoDiv.addEventListener('click', function() {
+                    // Try embed first, fallback to YouTube if blocked
+                    removeIframe();
+
+                    var iw = document.createElement('div');
+                    iw.className = 'pd-iframe-wrap';
+
+                    var ifr = document.createElement('iframe');
+                    ifr.src = 'https://www.youtube-nocookie.com/embed/' + videoId + '?autoplay=1&rel=0';
+                    ifr.allow =
+                        'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+                    ifr.allowFullscreen = true;
+
+                    // Detect "video unavailable" and fallback to new tab
+                    ifr.addEventListener('load', function() {
+                        try {
+                            // If blocked, open in new tab instead
+                            var doc = ifr.contentDocument || ifr.contentWindow.document;
+                            if (!doc || doc.body.innerHTML === '') {
+                                removeIframe();
+                                window.open('https://www.youtube.com/watch?v=' + videoId,
+                                    '_blank');
+                            }
+                        } catch (e) {
+                            // cross-origin error is normal, video is loading fine
+                        }
+                    });
+
+                    var cb = document.createElement('button');
+                    cb.className = 'pd-iframe-close';
+                    cb.innerHTML = '✕';
+                    cb.onclick = function(e) {
+                        e.stopPropagation();
+                        removeIframe();
+                    };
+
+                    iw.appendChild(ifr);
+                    iw.appendChild(cb);
+                    wrap.appendChild(iw);
+                });
+            });
+
+            /* ── Qty stepper ── */
+            /* ── Qty stepper ── */
             var qtyInput = document.getElementById('pd-qty');
             if (qtyInput) {
                 var maxQty = parseInt(qtyInput.getAttribute('max')) || 99;
@@ -959,30 +1147,138 @@
                     if (v < maxQty) qtyInput.value = v + 1;
                 });
             }
+
+            /* ── Product Attribute / Variant Chips ── */
+            (function() {
+                var chips = Array.from(document.querySelectorAll('.pd-variant-chip'));
+                if (!chips.length) return;
+
+                var atrInput = document.getElementById('pdAtrInput');
+                var addBtn = document.getElementById('pdAddBtn');
+                var addBtnText = document.getElementById('pdAddBtnText');
+                var priceEl = document.getElementById('pdPrice');
+                var mrpEl = document.getElementById('pdMrp');
+                var saveEl = document.getElementById('pdSave');
+                var stockMeta = document.getElementById('pdStockMeta');
+                var stockDot = document.getElementById('pdStockDot');
+                var stockText = document.getElementById('pdStockText');
+                var variantDesc = document.getElementById('pdVariantDesc');
+                var variantRequired = document.getElementById('pdVariantRequired');
+                var qtyMax = document.getElementById('pd-qty');
+
+                // Format currency like PHP number_format
+                function fmt(n) {
+                    return '₹' + parseFloat(n).toLocaleString('en-IN', {
+                        maximumFractionDigits: 0
+                    });
+                }
+
+                function setStock(stock, inStock) {
+                    if (inStock) {
+                        stockMeta.className = 'pd-instock';
+                        stockDot.className = 'pd-stock-dot pd-stock-dot--in';
+                        stockText.textContent = 'In Stock (' + stock + ' units)';
+                        if (qtyMax) {
+                            qtyMax.max = stock;
+                            qtyMax.disabled = false;
+                        }
+                    } else {
+                        stockMeta.className = 'pd-outstock';
+                        stockDot.className = 'pd-stock-dot pd-stock-dot--out';
+                        stockText.textContent = 'Out of Stock';
+                        if (qtyMax) {
+                            qtyMax.disabled = true;
+                        }
+                    }
+                }
+
+                function setAddBtn(state) {
+                    // state: 'select' | 'instock' | 'outofstock'
+                    addBtn.disabled = (state !== 'instock');
+                    addBtn.classList.toggle('pd-btn-disabled', state !== 'instock');
+                    if (state === 'select') addBtnText.textContent = 'Select a Variant';
+                    if (state === 'instock') addBtnText.textContent = 'Add to Cart';
+                    if (state === 'outofstock') addBtnText.textContent = 'Out of Stock';
+                }
+
+                chips.forEach(function(chip) {
+                    chip.addEventListener('click', function() {
+                        if (chip.classList.contains('pd-variant-chip--oos')) return;
+
+                        // Deselect all, select this
+                        chips.forEach(function(c) {
+                            c.classList.remove('active');
+                        });
+                        chip.classList.add('active');
+
+                        var atrId = chip.dataset.atrId;
+                        var mrp = parseFloat(chip.dataset.mrp);
+                        var selling = parseFloat(chip.dataset.selling);
+                        var stock = parseInt(chip.dataset.stock);
+                        var size = chip.dataset.size;
+                        var desc = chip.dataset.desc;
+
+                        // Update hidden input
+                        atrInput.value = atrId;
+
+                        // Update price display
+                        priceEl.textContent = fmt(selling);
+                        if (mrp > selling) {
+                            mrpEl.textContent = fmt(mrp);
+                            mrpEl.style.display = '';
+                            saveEl.textContent = 'Save ' + fmt(mrp - selling);
+                            saveEl.style.display = '';
+                        } else {
+                            mrpEl.style.display = 'none';
+                            saveEl.style.display = 'none';
+                        }
+
+                        // Update stock
+                        setStock(stock, stock > 0);
+
+                        // Update qty max
+                        if (qtyMax) {
+                            qtyMax.max = stock;
+                            var curVal = parseInt(qtyMax.value) || 1;
+                            if (curVal > stock) qtyMax.value = stock > 0 ? stock : 1;
+                            if (stock <= 0) qtyMax.value = 1;
+                        }
+
+                        // Update variant description
+                        if (variantDesc) {
+                            if (desc) {
+                                variantDesc.textContent = desc;
+                                variantDesc.style.display = '';
+                            } else {
+                                variantDesc.style.display = 'none';
+                            }
+                        }
+
+                        // Hide the "please select" warning
+                        if (variantRequired) variantRequired.style.display = 'none';
+
+                        // Update button
+                        setAddBtn(stock > 0 ? 'instock' : 'outofstock');
+                    });
+                });
+
+                // Guard: prevent form submit without selecting a variant
+                var form = document.getElementById('pdCartForm');
+                if (form) {
+                    form.addEventListener('submit', function(e) {
+                        if (!atrInput.value) {
+                            e.preventDefault();
+                            if (variantRequired) variantRequired.style.display = 'flex';
+                            // Scroll to chips smoothly
+                            document.getElementById('pdVariantsWrap') &&
+                                document.getElementById('pdVariantsWrap').scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'center'
+                                });
+                        }
+                    });
+                }
+            })();
         })();
     </script>
-<script>
-    function removeIframe() {
-    var existing = wrap.querySelector('.pd-iframe-wrap');
-    if(existing) existing.remove();
-}
-
-slides.forEach(function(slide) {
-    if(slide.dataset.type === 'video') {
-        var videoId = slide.dataset.videoId;
-        slide.querySelector('.pd-video-slide').addEventListener('click', function() {
-            removeIframe();
-            var iw = document.createElement('div'); iw.className = 'pd-iframe-wrap';
-            var ifr = document.createElement('iframe');
-            ifr.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0';
-            ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-            ifr.allowFullscreen = true;
-            var cb = document.createElement('button'); cb.className = 'pd-iframe-close'; cb.innerHTML = '✕';
-            cb.onclick = function(e){ e.stopPropagation(); removeIframe(); };
-            iw.appendChild(ifr); iw.appendChild(cb);
-            slide.appendChild(iw);
-        });
-    }
-});
-</script>
 @endsection
