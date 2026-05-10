@@ -412,20 +412,30 @@
             touch-action: pan-y;
             user-select: none;
             -webkit-user-select: none;
+            -webkit-overflow-scrolling: touch;
+            transform: translateZ(0);
+            /* force GPU layer, fixes iOS overflow bug */
         }
 
         .pd-slides-track {
             display: flex;
+            /* Fix: width must be exactly 100% of wrap, no overflow */
             width: 100%;
             transition: transform 0.38s cubic-bezier(0.25, 0.8, 0.25, 1);
             will-change: transform;
-            align-items: flex-start;
+            align-items: stretch;
+            /* was flex-start — stretch keeps all slides same height */
         }
 
         .pd-slide {
             min-width: 100%;
+            width: 100%;
+            /* explicit width prevents Safari from shrinking */
             flex-shrink: 0;
+            flex-grow: 0;
+            /* never grow beyond 100% */
             overflow: hidden;
+            box-sizing: border-box;
         }
 
         .pd-slide img {
@@ -434,6 +444,8 @@
             object-fit: contain;
             display: block;
             background: var(--surface);
+            /* Fix: prevent iOS from stretching image beyond container */
+            max-width: 100%;
         }
 
         /* Discount badge */
@@ -1064,269 +1076,342 @@
         }
     </style>
 
-<script>
-(function () {
-    /* ════════════════════════════════════════
-       CAROUSEL
-    ════════════════════════════════════════ */
-    var track   = document.getElementById('pdTrack');
-    var wrap    = document.getElementById('pdCarouselWrap');
-    var thumbs  = Array.from(document.querySelectorAll('.pd-thumb'));
-    var dots    = Array.from(document.querySelectorAll('.pd-dot'));
-    var btnPrev = document.getElementById('pdPrev');
-    var btnNext = document.getElementById('pdNext');
+    <script>
+        (function() {
+            /* ════════════════════════════════════════
+               CAROUSEL
+            ════════════════════════════════════════ */
+            var track = document.getElementById('pdTrack');
+            var wrap = document.getElementById('pdCarouselWrap');
+            var thumbs = Array.from(document.querySelectorAll('.pd-thumb'));
+            var dots = Array.from(document.querySelectorAll('.pd-dot'));
+            var btnPrev = document.getElementById('pdPrev');
+            var btnNext = document.getElementById('pdNext');
 
-    if (track) {
-        var slides    = Array.from(track.children);
-        var total     = slides.length;
-        var current   = 0;
-        var animating = false;
+            if (track) {
+                var slides = Array.from(track.children);
+                var total = slides.length;
+                var current = 0;
+                var animating = false;
 
-        function syncHeight() {
-            var img = slides[current].querySelector('img:not(.yt-poster)') ||
-                      slides[current].querySelector('img');
-            if (!img) return;
-            if (img.complete && img.naturalHeight > 0) {
-                var w = wrap.offsetWidth;
-                var h = Math.round(w * img.naturalHeight / img.naturalWidth);
-                wrap.style.height = h + 'px';
-                slides.forEach(function (s) { s.style.height = h + 'px'; });
-            } else {
-                img.addEventListener('load', syncHeight, { once: true });
-            }
-        }
-        window.addEventListener('load', syncHeight);
-        window.addEventListener('resize', syncHeight);
-        syncHeight();
+                function syncHeight() {
+                    var slide = slides[current];
+                    var img = slide.querySelector('img:not(.yt-poster)') || slide.querySelector('img');
+                    if (!img) {
+                        // Video slide — use 16:9
+                        var h = Math.round(wrap.offsetWidth * 9 / 16);
+                        wrap.style.height = h + 'px';
+                        slides.forEach(function(s) {
+                            s.style.height = h + 'px';
+                        });
+                        return;
+                    }
 
-        function removeIframe() {
-            var existing = wrap.querySelector('.pd-iframe-wrap');
-            if (existing) existing.remove();
-        }
-
-        function setSlide(index) {
-            if (animating || index === current) return;
-            removeIframe();
-            animating = true;
-            current   = index;
-            track.style.transform = 'translateX(-' + (current * 100) + '%)';
-            dots.forEach(function (d, i)   { d.classList.toggle('active', i === current); });
-            thumbs.forEach(function (t, i) { t.classList.toggle('active', i === current); });
-            setTimeout(function () { syncHeight(); animating = false; }, 400);
-        }
-
-        if (total > 1) {
-            btnPrev && btnPrev.addEventListener('click', function () {
-                setSlide((current - 1 + total) % total);
-            });
-            btnNext && btnNext.addEventListener('click', function () {
-                setSlide((current + 1) % total);
-            });
-            dots.forEach(function (dot, i) {
-                dot.addEventListener('click', function () { setSlide(i); });
-            });
-            thumbs.forEach(function (thumb, i) {
-                thumb.addEventListener('click', function () { setSlide(i); });
-            });
-
-            /* Swipe */
-            var tx = 0, ty = 0;
-            wrap.addEventListener('touchstart', function (e) {
-                tx = e.changedTouches[0].clientX;
-                ty = e.changedTouches[0].clientY;
-            }, { passive: true });
-            wrap.addEventListener('touchend', function (e) {
-                var dx = e.changedTouches[0].clientX - tx;
-                var dy = e.changedTouches[0].clientY - ty;
-                if (Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(dy)) {
-                    dx < 0 ? setSlide((current + 1) % total)
-                           : setSlide((current - 1 + total) % total);
-                }
-            }, { passive: true });
-
-            /* Keyboard */
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'ArrowLeft')  setSlide((current - 1 + total) % total);
-                if (e.key === 'ArrowRight') setSlide((current + 1) % total);
-            });
-        }
-
-        /* Video slides */
-        slides.forEach(function (slide) {
-            if (slide.dataset.type !== 'video') return;
-            var videoId  = slide.dataset.videoId;
-            var videoDiv = slide.querySelector('.pd-video-slide');
-            if (!videoDiv) return;
-
-            videoDiv.addEventListener('click', function () {
-                removeIframe();
-                var iw  = document.createElement('div');
-                iw.className = 'pd-iframe-wrap';
-
-                var ifr = document.createElement('iframe');
-                ifr.src = 'https://www.youtube-nocookie.com/embed/' + videoId + '?autoplay=1&rel=0';
-                ifr.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-                ifr.allowFullscreen = true;
-
-                /* postMessage error → open in new tab */
-                window.addEventListener('message', function onMsg(e) {
-                    try {
-                        var data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
-                        if (data && ((data.event === 'infoDelivery' && data.info && data.info.error) || data.event === 'onError')) {
-                            removeIframe();
-                            window.open('https://www.youtube.com/watch?v=' + videoId, '_blank');
-                            window.removeEventListener('message', onMsg);
+                    function applyHeight() {
+                        if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+                            var w = wrap.offsetWidth;
+                            var h = Math.round(w * img.naturalHeight / img.naturalWidth);
+                            // Clamp: never taller than 90vh on mobile
+                            var maxH = Math.round(window.innerHeight * 0.9);
+                            h = Math.min(h, maxH);
+                            wrap.style.height = h + 'px';
+                            slides.forEach(function(s) {
+                                s.style.height = h + 'px';
+                            });
+                        } else {
+                            // Fallback: 4:3 aspect ratio while image loads
+                            var fallbackH = Math.round(wrap.offsetWidth * 4 / 3);
+                            wrap.style.height = fallbackH + 'px';
+                            slides.forEach(function(s) {
+                                s.style.height = fallbackH + 'px';
+                            });
                         }
-                    } catch (err) {}
-                });
+                    }
 
-                var cb = document.createElement('button');
-                cb.className = 'pd-iframe-close';
-                cb.innerHTML = '✕';
-                cb.onclick = function (e) { e.stopPropagation(); removeIframe(); };
-
-                iw.appendChild(ifr);
-                iw.appendChild(cb);
-                wrap.appendChild(iw);
-            });
-        });
-    } // end carousel block
-
-
-    /* ════════════════════════════════════════
-       QTY STEPPER  — completely independent
-    ════════════════════════════════════════ */
-    var qtyInput = document.getElementById('pd-qty');
-    if (qtyInput) {
-        var qtyMinus = document.getElementById('qtyMinus');
-        var qtyPlus  = document.getElementById('qtyPlus');
-
-        qtyMinus && qtyMinus.addEventListener('click', function () {
-            var v = parseInt(qtyInput.value) || 1;
-            if (v > 1) qtyInput.value = v - 1;
-        });
-        qtyPlus && qtyPlus.addEventListener('click', function () {
-            var v   = parseInt(qtyInput.value) || 1;
-            var max = parseInt(qtyInput.getAttribute('max')) || 9999;
-            if (v < max) qtyInput.value = v + 1;
-        });
-    }
-
-
-    /* ════════════════════════════════════════
-       VARIANT CHIPS  — completely independent
-    ════════════════════════════════════════ */
-    var chips = Array.from(document.querySelectorAll('.pd-variant-chip'));
-
-    if (chips.length) {
-        var atrInput      = document.getElementById('pdAtrInput');
-        var addBtn        = document.getElementById('pdAddBtn');
-        var addBtnText    = document.getElementById('pdAddBtnText');
-        var priceEl       = document.getElementById('pdPrice');
-        var mrpEl         = document.getElementById('pdMrp');
-        var saveEl        = document.getElementById('pdSave');
-        var stockMeta     = document.getElementById('pdStockMeta');
-        var stockDot      = document.getElementById('pdStockDot');
-        var stockText     = document.getElementById('pdStockText');
-        var variantDesc   = document.getElementById('pdVariantDesc');
-        var variantReq    = document.getElementById('pdVariantRequired');
-        var qtyField      = document.getElementById('pd-qty');
-        var qtyMinusBtn   = document.getElementById('qtyMinus');
-        var qtyPlusBtn    = document.getElementById('qtyPlus');
-
-        function fmt(n) {
-            return '₹' + parseFloat(n).toLocaleString('en-IN', { maximumFractionDigits: 0 });
-        }
-
-        function updateStock(stock) {
-            var inStock = stock > 0;
-            if (stockMeta) stockMeta.className = inStock ? 'pd-instock' : 'pd-outstock';
-            if (stockDot)  stockDot.className  = 'pd-stock-dot ' + (inStock ? 'pd-stock-dot--in' : 'pd-stock-dot--out');
-            if (stockText) stockText.textContent = inStock ? 'In Stock (' + stock + ' units)' : 'Out of Stock';
-
-            if (qtyField) {
-                qtyField.max      = inStock ? stock : 1;
-                qtyField.disabled = !inStock;
-                qtyField.value    = 1;
-            }
-            if (qtyMinusBtn) qtyMinusBtn.disabled = !inStock;
-            if (qtyPlusBtn)  qtyPlusBtn.disabled  = !inStock;
-        }
-
-        function updateBtn(state) {
-            // state: 'select' | 'instock' | 'outofstock'
-            var enabled = (state === 'instock');
-            if (addBtn) {
-                addBtn.disabled = !enabled;
-                addBtn.classList.toggle('pd-btn-disabled', !enabled);
-            }
-            if (addBtnText) {
-                addBtnText.textContent =
-                    state === 'select'     ? 'Select a Variant' :
-                    state === 'outofstock' ? 'Out of Stock'      : 'Add to Cart';
-            }
-        }
-
-        chips.forEach(function (chip) {
-            chip.addEventListener('click', function () {
-                // Block OOS chips
-                if (chip.classList.contains('pd-variant-chip--oos')) return;
-
-                // Deselect all → select clicked
-                chips.forEach(function (c) { c.classList.remove('active'); });
-                chip.classList.add('active');
-
-                var atrId   = chip.dataset.atrId;
-                var mrp     = parseFloat(chip.dataset.mrp)     || 0;
-                var selling = parseFloat(chip.dataset.selling)  || 0;
-                var stock   = parseInt(chip.dataset.stock)      || 0;
-                var desc    = chip.dataset.desc                 || '';
-
-                // Hidden input
-                if (atrInput) atrInput.value = atrId;
-
-                // Price
-                if (priceEl) priceEl.textContent = fmt(selling);
-                if (mrp > selling) {
-                    if (mrpEl)  { mrpEl.textContent  = fmt(mrp);                    mrpEl.style.display  = ''; }
-                    if (saveEl) { saveEl.textContent = 'Save ' + fmt(mrp - selling); saveEl.style.display = ''; }
-                } else {
-                    if (mrpEl)  mrpEl.style.display  = 'none';
-                    if (saveEl) saveEl.style.display = 'none';
-                }
-
-                // Stock + qty
-                updateStock(stock);
-
-                // Variant description
-                if (variantDesc) {
-                    variantDesc.textContent  = desc;
-                    variantDesc.style.display = desc ? '' : 'none';
-                }
-
-                // Hide warning
-                if (variantReq) variantReq.style.display = 'none';
-
-                // Button state
-                updateBtn(stock > 0 ? 'instock' : 'outofstock');
-            });
-        });
-
-        /* Guard: block submit if no variant chosen */
-        var cartForm = document.getElementById('pdCartForm');
-        if (cartForm) {
-            cartForm.addEventListener('submit', function (e) {
-                if (!atrInput || !atrInput.value) {
-                    e.preventDefault();
-                    if (variantReq) {
-                        variantReq.style.display = 'flex';
-                        variantReq.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    if (img.complete && img.naturalWidth > 0) {
+                        applyHeight();
+                    } else {
+                        // Set fallback immediately so layout doesn't collapse
+                        var fallbackH = Math.round(wrap.offsetWidth * 4 / 3);
+                        wrap.style.height = fallbackH + 'px';
+                        slides.forEach(function(s) {
+                            s.style.height = fallbackH + 'px';
+                        });
+                        img.addEventListener('load', applyHeight, {
+                            once: true
+                        });
                     }
                 }
-            });
-        }
-    } // end chips block
+                window.addEventListener('load', syncHeight);
+                window.addEventListener('resize', syncHeight);
+                syncHeight();
 
-})();
-</script>
+                function removeIframe() {
+                    var existing = wrap.querySelector('.pd-iframe-wrap');
+                    if (existing) existing.remove();
+                }
+
+                function setSlide(index) {
+                    if (animating || index === current) return;
+                    removeIframe();
+                    animating = true;
+                    current = index;
+                    track.style.transform = 'translateX(-' + (current * 100) + '%)';
+                    dots.forEach(function(d, i) {
+                        d.classList.toggle('active', i === current);
+                    });
+                    thumbs.forEach(function(t, i) {
+                        t.classList.toggle('active', i === current);
+                    });
+                    setTimeout(function() {
+                        syncHeight();
+                        animating = false;
+                    }, 400);
+                }
+
+                if (total > 1) {
+                    btnPrev && btnPrev.addEventListener('click', function() {
+                        setSlide((current - 1 + total) % total);
+                    });
+                    btnNext && btnNext.addEventListener('click', function() {
+                        setSlide((current + 1) % total);
+                    });
+                    dots.forEach(function(dot, i) {
+                        dot.addEventListener('click', function() {
+                            setSlide(i);
+                        });
+                    });
+                    thumbs.forEach(function(thumb, i) {
+                        thumb.addEventListener('click', function() {
+                            setSlide(i);
+                        });
+                    });
+
+                    /* Swipe */
+                    var tx = 0,
+                        ty = 0;
+                    wrap.addEventListener('touchstart', function(e) {
+                        tx = e.changedTouches[0].clientX;
+                        ty = e.changedTouches[0].clientY;
+                    }, {
+                        passive: true
+                    });
+                    wrap.addEventListener('touchend', function(e) {
+                        var dx = e.changedTouches[0].clientX - tx;
+                        var dy = e.changedTouches[0].clientY - ty;
+                        if (Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(dy)) {
+                            dx < 0 ? setSlide((current + 1) % total) :
+                                setSlide((current - 1 + total) % total);
+                        }
+                    }, {
+                        passive: true
+                    });
+
+                    /* Keyboard */
+                    document.addEventListener('keydown', function(e) {
+                        if (e.key === 'ArrowLeft') setSlide((current - 1 + total) % total);
+                        if (e.key === 'ArrowRight') setSlide((current + 1) % total);
+                    });
+                }
+
+                /* Video slides */
+                slides.forEach(function(slide) {
+                    if (slide.dataset.type !== 'video') return;
+                    var videoId = slide.dataset.videoId;
+                    var videoDiv = slide.querySelector('.pd-video-slide');
+                    if (!videoDiv) return;
+
+                    videoDiv.addEventListener('click', function() {
+                        removeIframe();
+                        var iw = document.createElement('div');
+                        iw.className = 'pd-iframe-wrap';
+
+                        var ifr = document.createElement('iframe');
+                        ifr.src = 'https://www.youtube-nocookie.com/embed/' + videoId +
+                            '?autoplay=1&rel=0';
+                        ifr.allow =
+                            'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+                        ifr.allowFullscreen = true;
+
+                        /* postMessage error → open in new tab */
+                        window.addEventListener('message', function onMsg(e) {
+                            try {
+                                var data = typeof e.data === 'string' ? JSON.parse(e.data) : e
+                                    .data;
+                                if (data && ((data.event === 'infoDelivery' && data.info && data
+                                        .info.error) || data.event === 'onError')) {
+                                    removeIframe();
+                                    window.open('https://www.youtube.com/watch?v=' + videoId,
+                                        '_blank');
+                                    window.removeEventListener('message', onMsg);
+                                }
+                            } catch (err) {}
+                        });
+
+                        var cb = document.createElement('button');
+                        cb.className = 'pd-iframe-close';
+                        cb.innerHTML = '✕';
+                        cb.onclick = function(e) {
+                            e.stopPropagation();
+                            removeIframe();
+                        };
+
+                        iw.appendChild(ifr);
+                        iw.appendChild(cb);
+                        wrap.appendChild(iw);
+                    });
+                });
+            } // end carousel block
+
+
+            /* ════════════════════════════════════════
+               QTY STEPPER  — completely independent
+            ════════════════════════════════════════ */
+            var qtyInput = document.getElementById('pd-qty');
+            if (qtyInput) {
+                var qtyMinus = document.getElementById('qtyMinus');
+                var qtyPlus = document.getElementById('qtyPlus');
+
+                qtyMinus && qtyMinus.addEventListener('click', function() {
+                    var v = parseInt(qtyInput.value) || 1;
+                    if (v > 1) qtyInput.value = v - 1;
+                });
+                qtyPlus && qtyPlus.addEventListener('click', function() {
+                    var v = parseInt(qtyInput.value) || 1;
+                    var max = parseInt(qtyInput.getAttribute('max')) || 9999;
+                    if (v < max) qtyInput.value = v + 1;
+                });
+            }
+
+
+            /* ════════════════════════════════════════
+               VARIANT CHIPS  — completely independent
+            ════════════════════════════════════════ */
+            var chips = Array.from(document.querySelectorAll('.pd-variant-chip'));
+
+            if (chips.length) {
+                var atrInput = document.getElementById('pdAtrInput');
+                var addBtn = document.getElementById('pdAddBtn');
+                var addBtnText = document.getElementById('pdAddBtnText');
+                var priceEl = document.getElementById('pdPrice');
+                var mrpEl = document.getElementById('pdMrp');
+                var saveEl = document.getElementById('pdSave');
+                var stockMeta = document.getElementById('pdStockMeta');
+                var stockDot = document.getElementById('pdStockDot');
+                var stockText = document.getElementById('pdStockText');
+                var variantDesc = document.getElementById('pdVariantDesc');
+                var variantReq = document.getElementById('pdVariantRequired');
+                var qtyField = document.getElementById('pd-qty');
+                var qtyMinusBtn = document.getElementById('qtyMinus');
+                var qtyPlusBtn = document.getElementById('qtyPlus');
+
+                function fmt(n) {
+                    return '₹' + parseFloat(n).toLocaleString('en-IN', {
+                        maximumFractionDigits: 0
+                    });
+                }
+
+                function updateStock(stock) {
+                    var inStock = stock > 0;
+                    if (stockMeta) stockMeta.className = inStock ? 'pd-instock' : 'pd-outstock';
+                    if (stockDot) stockDot.className = 'pd-stock-dot ' + (inStock ? 'pd-stock-dot--in' :
+                        'pd-stock-dot--out');
+                    if (stockText) stockText.textContent = inStock ? 'In Stock (' + stock + ' units)' : 'Out of Stock';
+
+                    if (qtyField) {
+                        qtyField.max = inStock ? stock : 1;
+                        qtyField.disabled = !inStock;
+                        qtyField.value = 1;
+                    }
+                    if (qtyMinusBtn) qtyMinusBtn.disabled = !inStock;
+                    if (qtyPlusBtn) qtyPlusBtn.disabled = !inStock;
+                }
+
+                function updateBtn(state) {
+                    // state: 'select' | 'instock' | 'outofstock'
+                    var enabled = (state === 'instock');
+                    if (addBtn) {
+                        addBtn.disabled = !enabled;
+                        addBtn.classList.toggle('pd-btn-disabled', !enabled);
+                    }
+                    if (addBtnText) {
+                        addBtnText.textContent =
+                            state === 'select' ? 'Select a Variant' :
+                            state === 'outofstock' ? 'Out of Stock' : 'Add to Cart';
+                    }
+                }
+
+                chips.forEach(function(chip) {
+                    chip.addEventListener('click', function() {
+                        // Block OOS chips
+                        if (chip.classList.contains('pd-variant-chip--oos')) return;
+
+                        // Deselect all → select clicked
+                        chips.forEach(function(c) {
+                            c.classList.remove('active');
+                        });
+                        chip.classList.add('active');
+
+                        var atrId = chip.dataset.atrId;
+                        var mrp = parseFloat(chip.dataset.mrp) || 0;
+                        var selling = parseFloat(chip.dataset.selling) || 0;
+                        var stock = parseInt(chip.dataset.stock) || 0;
+                        var desc = chip.dataset.desc || '';
+
+                        // Hidden input
+                        if (atrInput) atrInput.value = atrId;
+
+                        // Price
+                        if (priceEl) priceEl.textContent = fmt(selling);
+                        if (mrp > selling) {
+                            if (mrpEl) {
+                                mrpEl.textContent = fmt(mrp);
+                                mrpEl.style.display = '';
+                            }
+                            if (saveEl) {
+                                saveEl.textContent = 'Save ' + fmt(mrp - selling);
+                                saveEl.style.display = '';
+                            }
+                        } else {
+                            if (mrpEl) mrpEl.style.display = 'none';
+                            if (saveEl) saveEl.style.display = 'none';
+                        }
+
+                        // Stock + qty
+                        updateStock(stock);
+
+                        // Variant description
+                        if (variantDesc) {
+                            variantDesc.textContent = desc;
+                            variantDesc.style.display = desc ? '' : 'none';
+                        }
+
+                        // Hide warning
+                        if (variantReq) variantReq.style.display = 'none';
+
+                        // Button state
+                        updateBtn(stock > 0 ? 'instock' : 'outofstock');
+                    });
+                });
+
+                /* Guard: block submit if no variant chosen */
+                var cartForm = document.getElementById('pdCartForm');
+                if (cartForm) {
+                    cartForm.addEventListener('submit', function(e) {
+                        if (!atrInput || !atrInput.value) {
+                            e.preventDefault();
+                            if (variantReq) {
+                                variantReq.style.display = 'flex';
+                                variantReq.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'center'
+                                });
+                            }
+                        }
+                    });
+                }
+            } // end chips block
+
+        })();
+    </script>
 @endsection
