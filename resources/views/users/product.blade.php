@@ -21,110 +21,150 @@
         </div>
     </div>
 
+    {{-- Notifications --}}
+    @if (session('success'))
+        <div class="container mt-3">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    @endif
+    @if (session('error'))
+        <div class="container mt-3">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    @endif
+
     {{-- ── Product Detail ── --}}
     <section class="pd-section">
         <div class="container">
             <div class="pd-grid">
-
-                {{-- ── LEFT: Gallery ── --}}
-                <div class="pd-gallery">
-                    @php
-                        $allImages = collect();
-                        $allImages->push(['type' => 'image', 'src' => url(\Storage::url($product->image ?? ''))]);
-                        foreach ($product->images as $img) {
-                            $allImages->push(['type' => 'image', 'src' => url(\Storage::url($img->image_path ?? ''))]);
-                        }
-                        // Add YouTube video if set
-                        // if ($product->video_url) {
-                        //     preg_match('/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/', $product->video_url, $m);
-                        //     $videoId = $m[1] ?? null;
-                        //     if ($videoId) {
-                        //         $allImages->push(['type' => 'video', 'video_id' => $videoId]);
-                        //     }
-                        // }
-                        if ($product->video_url) {
-                            preg_match('/(?:v=|youtu\.be\/|shorts\/)([a-zA-Z0-9_-]{11})/', $product->video_url, $m);
-                            $videoId = $m[1] ?? null;
-                            if ($videoId) {
-                                $allImages->push(['type' => 'video', 'video_id' => $videoId]);
+                <div>
+                    {{-- ── LEFT: Gallery ── --}}
+                    <div class="pd-gallery">
+                        @php
+                            $allImages = collect();
+                            $allImages->push(['type' => 'image', 'src' => url(\Storage::url($product->image ?? ''))]);
+                            foreach ($product->images as $img) {
+                                $allImages->push([
+                                    'type' => 'image',
+                                    'src' => url(\Storage::url($img->image_path ?? '')),
+                                ]);
                             }
-                        }
-                    @endphp
+                            // Add YouTube video if set
+                            // if ($product->video_url) {
+                            //     preg_match('/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/', $product->video_url, $m);
+                            //     $videoId = $m[1] ?? null;
+                            //     if ($videoId) {
+                            //         $allImages->push(['type' => 'video', 'video_id' => $videoId]);
+                            //     }
+                            // }
+                            if ($product->video_url) {
+                                preg_match('/(?:v=|youtu\.be\/|shorts\/)([a-zA-Z0-9_-]{11})/', $product->video_url, $m);
+                                $videoId = $m[1] ?? null;
+                                if ($videoId) {
+                                    $allImages->push(['type' => 'video', 'video_id' => $videoId]);
+                                }
+                            }
+                        @endphp
 
-                    {{-- Carousel --}}
-                    <div class="pd-carousel-wrap" id="pdCarouselWrap">
+                        {{-- Carousel --}}
+                        <div class="pd-carousel-wrap" id="pdCarouselWrap">
 
-                        @if ($product->mrp > $product->selling)
-                            <div class="pd-badge-off">
-                                {{ round((($product->mrp - $product->selling) / $product->mrp) * 100) }}% OFF</div>
-                        @endif
+                            @if ($product->mrp > $product->selling)
+                                <div class="pd-badge-off">
+                                    {{ round((($product->mrp - $product->selling) / $product->mrp) * 100) }}% OFF</div>
+                            @endif
 
-                        @if ($product->stock <= 0)
-                            <div class="pd-oos-overlay">Out of Stock</div>
-                        @endif
+                            @if ($product->stock <= 0)
+                                <div class="pd-oos-overlay">Out of Stock</div>
+                            @endif
 
-                        {{-- Slides container --}}
-                        <div class="pd-slides-track" id="pdTrack">
-                            @foreach ($allImages as $i => $item)
-                                <div class="pd-slide" data-index="{{ $i }}" data-type="{{ $item['type'] }}"
-                                    @if ($item['type'] === 'video') data-video-id="{{ $item['video_id'] }}" @endif>
-                                    @if ($item['type'] === 'video')
-                                        <div class="pd-video-slide" style="height:var(--carousel-h,420px)">
-                                            <img class="yt-poster"
-                                                src="https://img.youtube.com/vi/{{ $item['video_id'] }}/hqdefault.jpg"
-                                                alt="Product video">
-                                            <div class="pd-play-btn">
-                                                <svg viewBox="0 0 24 24" fill="white">
-                                                    <polygon points="6,4 20,12 6,20" />
-                                                </svg>
+                            {{-- Slides container --}}
+                            <div class="pd-slides-track" id="pdTrack">
+                                @foreach ($allImages as $i => $item)
+                                    <div class="pd-slide" data-index="{{ $i }}" data-type="{{ $item['type'] }}"
+                                        @if ($item['type'] === 'video') data-video-id="{{ $item['video_id'] }}" @endif>
+                                        @if ($item['type'] === 'video')
+                                            <div class="pd-video-slide" style="height:var(--carousel-h,420px)">
+                                                <img class="yt-poster"
+                                                    src="https://img.youtube.com/vi/{{ $item['video_id'] }}/hqdefault.jpg"
+                                                    alt="Product video">
+                                                <div class="pd-play-btn">
+                                                    <svg viewBox="0 0 24 24" fill="white">
+                                                        <polygon points="6,4 20,12 6,20" />
+                                                    </svg>
+                                                </div>
+                                                <div class="pd-video-label">Watch product video</div>
                                             </div>
-                                            <div class="pd-video-label">Watch product video</div>
-                                        </div>
-                                    @else
-                                        <img src="{{ $item['src'] }}" alt="{{ $product->name }}"
-                                            loading="{{ $i === 0 ? 'eager' : 'lazy' }}">
-                                    @endif
+                                        @else
+                                            <img src="{{ $item['src'] }}" alt="{{ $product->name }}"
+                                                loading="{{ $i === 0 ? 'eager' : 'lazy' }}">
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            @if ($allImages->count() > 1)
+                                <button class="pd-arrow pd-arrow-prev" id="pdPrev" aria-label="Previous">
+                                    <i class="bi bi-chevron-left"></i>
+                                </button>
+                                <button class="pd-arrow pd-arrow-next" id="pdNext" aria-label="Next">
+                                    <i class="bi bi-chevron-right"></i>
+                                </button>
+                                <div class="pd-dots" id="pdDots">
+                                    @foreach ($allImages as $i => $src)
+                                        <button class="pd-dot {{ $i === 0 ? 'active' : '' }}"
+                                            data-index="{{ $i }}"
+                                            aria-label="Image {{ $i + 1 }}"></button>
+                                    @endforeach
                                 </div>
-                            @endforeach
+                            @endif
                         </div>
 
+                        {{-- Thumbnails --}}
                         @if ($allImages->count() > 1)
-                            <button class="pd-arrow pd-arrow-prev" id="pdPrev" aria-label="Previous">
-                                <i class="bi bi-chevron-left"></i>
-                            </button>
-                            <button class="pd-arrow pd-arrow-next" id="pdNext" aria-label="Next">
-                                <i class="bi bi-chevron-right"></i>
-                            </button>
-                            <div class="pd-dots" id="pdDots">
-                                @foreach ($allImages as $i => $src)
-                                    <button class="pd-dot {{ $i === 0 ? 'active' : '' }}" data-index="{{ $i }}"
-                                        aria-label="Image {{ $i + 1 }}"></button>
+                            <div class="pd-thumbs">
+                                @foreach ($allImages as $i => $item)
+                                    <button class="pd-thumb {{ $i === 0 ? 'active' : '' }}"
+                                        data-index="{{ $i }}" type="button">
+                                        @if ($item['type'] === 'video')
+                                            <img src="https://img.youtube.com/vi/{{ $item['video_id'] }}/mqdefault.jpg"
+                                                alt="Video">
+                                            <div class="pd-thumb-video-badge">
+                                                <svg viewBox="0 0 24 24">
+                                                    <rect x="2" y="5" width="20" height="14" rx="3"
+                                                        fill="rgba(220,0,0,.85)" />
+                                                    <polygon points="10,9 16,12 10,15" fill="white" />
+                                                </svg>
+                                            </div>
+                                        @else
+                                            <img src="{{ $item['src'] }}" alt="{{ $product->name }}">
+                                        @endif
+                                    </button>
                                 @endforeach
                             </div>
                         @endif
                     </div>
 
-                    {{-- Thumbnails --}}
-                    @if ($allImages->count() > 1)
-                        <div class="pd-thumbs">
-                            @foreach ($allImages as $i => $item)
-                                <button class="pd-thumb {{ $i === 0 ? 'active' : '' }}" data-index="{{ $i }}"
-                                    type="button">
-                                    @if ($item['type'] === 'video')
-                                        <img src="https://img.youtube.com/vi/{{ $item['video_id'] }}/mqdefault.jpg"
-                                            alt="Video">
-                                        <div class="pd-thumb-video-badge">
-                                            <svg viewBox="0 0 24 24">
-                                                <rect x="2" y="5" width="20" height="14" rx="3"
-                                                    fill="rgba(220,0,0,.85)" />
-                                                <polygon points="10,9 16,12 10,15" fill="white" />
-                                            </svg>
-                                        </div>
-                                    @else
-                                        <img src="{{ $item['src'] }}" alt="{{ $product->name }}">
-                                    @endif
-                                </button>
-                            @endforeach
+                    {{-- Description — sits directly below gallery --}}
+                    @if ($product->long_description)
+                        <div class="pd-desc-wrap" style="margin-top:24px;max-width:100%;">
+                            <div class="accordion-clean">
+                                <div class="acc-item open">
+                                    <div class="acc-head" onclick="this.parentElement.classList.toggle('open')">
+                                        <span>Product Description</span>
+                                        <i class="bi bi-plus" style="font-size:14px;color:var(--accent-2)"></i>
+                                    </div>
+                                    <div class="acc-body">
+                                        <div class="pd-long-desc">{!! $product->long_description !!}</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     @endif
                 </div>
@@ -315,11 +355,53 @@
                         </div>
                     </div>
 
+                    <div class="pd-divider"></div>
+
+                    {{-- ── Catalogue Download ── --}}
+                    <div>
+                        <span class="pd-label">Resources</span>
+
+                        <div
+                            style="background:var(--surface);border:1px solid var(--line-strong);border-left:3px solid var(--accent);padding:18px 20px;display:flex;flex-direction:column;gap:14px;">
+
+                            <div style="display:flex;align-items:flex-start;gap:14px;">
+                                <div
+                                    style="width:42px;height:42px;background:var(--bg);border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    <i class="bi bi-file-earmark-pdf" style="font-size:18px;color:var(--accent-2)"></i>
+                                </div>
+                                <div style="flex:1;min-width:0;">
+                                    <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:3px;">Product
+                                        Catalogue</div>
+                                    <div style="font-size:12px;color:var(--soft);line-height:1.5;">Download our complete
+                                        catalogue with full product details, pricing &amp; specifications.</div>
+                                </div>
+                            </div>
+
+                            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                                <a href="{{ url('users/EVERWEAR-PRICE-LIST-2025-26.pdf') }}" target="_blank"
+                                    style="flex:1;min-width:140px;display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--ink);color:var(--bg);border:1px solid var(--ink);padding:10px 16px;font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:background .2s,color .2s;">
+                                    <i class="bi bi-download"></i> Download PDF
+                                </a>
+                                <a href="{{ url('users/EVERWEAR-PRICE-LIST-2025-26.pdf') }}" target="_blank"
+                                    style="flex:1;min-width:120px;display:inline-flex;align-items:center;justify-content:center;gap:7px;background:transparent;color:var(--ink);border:1px solid var(--line-strong);padding:10px 16px;font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:background .2s,color .2s;">
+                                    <i class="bi bi-eye"></i> View Online
+                                </a>
+                            </div>
+
+                        </div>
+
+                        <div
+                            style="font-size:11px;color:var(--soft-2);text-align:center;letter-spacing:0.06em;margin-top:14px;">
+                            Need bulk pricing? <a href="{{ url('contact') }}"
+                                style="color:var(--accent-2);font-weight:600;text-decoration:underline;">Contact us</a>
+                        </div>
+                    </div>
+
                 </div>{{-- /pd-info --}}
             </div>{{-- /pd-grid --}}
 
             {{-- Description --}}
-            @if ($product->long_description)
+            {{-- @if ($product->long_description)
                 <div class="pd-desc-wrap">
                     <div class="accordion-clean">
                         <div class="acc-item open">
@@ -333,7 +415,7 @@
                         </div>
                     </div>
                 </div>
-            @endif
+            @endif --}}
 
         </div>
     </section>

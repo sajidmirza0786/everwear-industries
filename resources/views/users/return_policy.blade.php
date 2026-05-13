@@ -91,7 +91,9 @@
     {{-- Footer note --}}
     <div class="border-start border-2 border-dark ps-3">
         <p class="text-muted mb-0" style="font-size:0.83rem;">
-            To initiate a request, kindly connect with our support team along with relevant details and images. Each case is reviewed with care to ensure a fair and prompt resolution.
+            To initiate a request, kindly write to us at
+            <a href="mailto:support@everwearindustries.com" class="text-dark fw-medium">support@everwearindustries.com</a>
+            with relevant details and images. Each case is reviewed with care to ensure a fair and prompt resolution.
         </p>
     </div>
 

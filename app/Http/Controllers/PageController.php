@@ -11,6 +11,12 @@ use Illuminate\Support\Facades\Mail;
 
 class PageController extends Controller
 {
+    public function categories()
+    {
+        $categories   = Category::where('status', 'enable')->whereNull('parent_id')->withCount('products')->get();
+        return view('users.categories', compact('categories'));
+    }
+
     public function listing(Request $request, $slug = null)
     {
         try {

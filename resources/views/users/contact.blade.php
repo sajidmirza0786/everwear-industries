@@ -184,7 +184,12 @@
                                         Email Address</div>
                                     <a href="mailto:{{ settings()->email }}"
                                         style="font-size:14px;color:var(--ink);font-weight:500;">
-                                        {{ settings()->email }} <br> {{ settings()->alt_email ?? '' }}
+                                        {{ settings()->email }}
+                                    </a>
+                                    <br>
+                                    <a href="mailto:{{ settings()->alt_email }}"
+                                        style="font-size:14px;color:var(--ink);font-weight:500;">
+                                        {{ settings()->alt_email ?? '' }}
                                     </a>
                                 </div>
                             </div>
@@ -198,8 +203,12 @@
                                     <div
                                         style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--soft);margin-bottom:4px;">
                                         Phone / WhatsApp</div>
-                                    <a href="tel:+910000000000" style="font-size:14px;color:var(--ink);font-weight:500;">
-                                        {{ settings()->mobile }} <br> {{ settings()->alt_mobile ?? '' }}
+                                    <a href="tel:{{ settings()->mobile }}" style="font-size:14px;color:var(--ink);font-weight:500;">
+                                        {{ settings()->mobile }} 
+                                    </a>
+                                    <br>
+                                    <a href="tel:{{ settings()->alt_mobile?? '' }}" style="font-size:14px;color:var(--ink);font-weight:500;">
+                                        {{ settings()->alt_mobile?? '' }} 
                                     </a>
                                 </div>
                             </div>

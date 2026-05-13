@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('code');
             $table->float('mrp', 8, 2);
             $table->float('selling', 8, 2);
-            $table->float('gram_weight', 8, 2);
+            $table->float('gram_weight', 8, 2)->nullable();
             $table->integer('stock')->default(0);
             $table->string('size')->nullable();
             $table->string('color')->nullable();

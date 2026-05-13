@@ -45,11 +45,11 @@
       <div class="col-lg-2 col-6 footer-col">
         <h6>Help</h6>
         <ul>
+          <li><a href="{{ url('collections') }}">Our Collections</a></li>
+          <li><a href="{{ url('catalogue') }}">Our Catalogue</a></li>
           <li><a href="{{ url('customer-service') }}">Customer Service</a></li>
           <li><a href="{{ url('shipping-policy') }}">Shipping Policy</a></li>
           <li><a href="{{ url('return-exchange-policy') }}">Returns &amp; Exchanges</a></li>
-          {{-- <li><a href="#">Size Guide</a></li>
-          <li><a href="#">Track Order</a></li> --}}
         </ul>
       </div>
 
@@ -69,7 +69,7 @@
         <ul>
           <li>{{ settings()->address }}</li>
           <li><a href="mailto:{{ settings()->email }}">{{ settings()->email }}</a></li>
-          <li>{{ settings()->mobile }}</li>
+          <li>{{ settings()->mobile }} <br> {{ settings()->alt_mobile?? '' }}</li>
         </ul>
       </div>
     </div>
@@ -89,3 +89,13 @@
     </div>
   </div>
 </footer>
+
+{{-- WhatsApp Fixed Button --}}
+<a href="https://wa.me/919911947047"
+   target="_blank"
+   rel="noopener noreferrer"
+   aria-label="Chat with us on WhatsApp"
+   class="whatsapp-fab">
+    <i class="bi bi-whatsapp"></i>
+    <span class="whatsapp-fab-label">Chat with us</span>
+</a>

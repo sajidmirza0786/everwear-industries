@@ -21,11 +21,13 @@ Route::view('return-exchange-policy', 'users.return_policy')->name('return_polic
 Route::view('customer-service', 'users.customer_service')->name('customer_service');
 Route::view('contact-us', 'users.contact')->name('contact');
 Route::view('videos', 'users.videos')->name('videos');
+Route::view('catalogue', 'users.catalogue')->name('catalogue');
 
 Route::controller(PageController::class)->group(function () {
     Route::get('products/{slug?}', 'listing')->name('listing');
     Route::post('enquiry-store', 'storeEnquiry')->name('storeEnquiry');
     Route::get('test-mail', 'testMail')->name('testMail');
+    Route::get('collections/', 'categories')->name('categories');
 });
 
 Route::controller(CartController::class)->prefix('cart')->name('cart.')->group(function () {

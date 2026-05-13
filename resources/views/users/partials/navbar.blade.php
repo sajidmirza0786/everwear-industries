@@ -22,9 +22,11 @@
 
         <a href="{{ url('/') }}" class="nav-link-main" data-nav="about" data-testid="nav-about">Home</a>
         <a href="{{ url('about-us') }}" class="nav-link-main" data-nav="about" data-testid="nav-about">Company Profile</a>
+        <a href="{{ url('collections') }}" class="nav-link-main" data-nav="about" data-testid="nav-about">Our Collections</a>
+        <a href="{{ url('catalogue') }}" class="nav-link-main" data-nav="about" data-testid="nav-about">Our Catalogue</a>
 
         <!-- Shop dropdown -->
-        @if($ucategories->isNotEmpty())
+        {{-- @if($ucategories->isNotEmpty())
         <div class="nav-dropdown">
           <a href="#" class="nav-link-main nav-dropdown-trigger" data-testid="nav-shop">
             Products <i class="bi bi-chevron-down nav-chevron" style="font-size:10px;"></i>
@@ -37,7 +39,7 @@
             <a href="/shop.html" class="nav-dropdown-item">All Products</a> -->
           </div>
         </div>
-        @endif
+        @endif --}}
         <a href="{{ url('videos') }}" class="nav-link-main" data-nav="about" data-testid="nav-about">Videos</a>
 
         <a href="{{ url('contact-us') }}" class="nav-link-main" data-nav="about" data-testid="nav-about">Contact Us</a>
@@ -254,6 +256,8 @@
     <ul class="list-unstyled m-0">
       <li><a href="{{ url('/') }}" class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom-soft text-reset">Home <i class="bi bi-chevron-right"></i></a></li>
       <li><a href="{{ url('about-us') }}" class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom-soft text-reset">About Us <i class="bi bi-chevron-right"></i></a></li>
+      <li><a href="{{ url('collections') }}" class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom-soft text-reset">Our Collections <i class="bi bi-chevron-right"></i></a></li>
+      <li><a href="{{ url('catalogue') }}" class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom-soft text-reset">Our Catalogue <i class="bi bi-chevron-right"></i></a></li>
       <li><a href="{{ url('videos') }}" class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom-soft text-reset">Videos <i class="bi bi-chevron-right"></i></a></li>
       <li><a href="{{ url('contact-us') }}" class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom-soft text-reset">Contact Us <i class="bi bi-chevron-right"></i></a></li>
       <li><a href="{{ url('customer-service') }}" class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom-soft text-reset">Customer Service <i class="bi bi-chevron-right"></i></a></li>

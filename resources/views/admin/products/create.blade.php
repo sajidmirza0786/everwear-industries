@@ -87,8 +87,8 @@
                                 @enderror
                             </div>
                             <div class="col-md-6">
-                                <label for="gram_weight" class="form-label">Product Weight (Gram) <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('gram_weight') is-invalid @enderror" id="gram_weight" name="gram_weight" value="{{ old('gram_weight', $product->gram_weight ?? '') }}" placeholder="e.g., 0,12,155" required>
+                                <label for="gram_weight" class="form-label">Product Weight-Gram  (Optional) </label>
+                                <input type="text" class="form-control @error('gram_weight') is-invalid @enderror" id="gram_weight" name="gram_weight" value="{{ old('gram_weight', $product->gram_weight ?? '') }}" placeholder="e.g., 0,12,155">
                                 @error('gram_weight')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
