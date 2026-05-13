@@ -378,7 +378,7 @@
                             </div>
 
                             <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                                <a href="{{ url('users/EVERWEAR-PRICE-LIST-2025-26.pdf') }}" target="_blank"
+                                <a href="{{ url('users/EVERWEAR-PRICE-LIST-2025-26.pdf') }}" target="_blank" download=""
                                     style="flex:1;min-width:140px;display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--ink);color:var(--bg);border:1px solid var(--ink);padding:10px 16px;font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:background .2s,color .2s;">
                                     <i class="bi bi-download"></i> Download PDF
                                 </a>
