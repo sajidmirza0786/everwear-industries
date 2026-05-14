@@ -191,6 +191,11 @@
                                         style="font-size:14px;color:var(--ink);font-weight:500;">
                                         {{ settings()->alt_email ?? '' }}
                                     </a>
+                                    <br>
+                                    <a href="mailto:order@everwearindustries.com"
+                                        style="font-size:14px;color:var(--ink);font-weight:500;">
+                                        order@everwearindustries.com
+                                    </a>
                                 </div>
                             </div>
 

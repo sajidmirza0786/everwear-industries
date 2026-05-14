@@ -78,13 +78,13 @@
                     <div style="display:flex;flex-direction:column;gap:10px;">
 
                         {{-- View --}}
-                        <a href="{{ url('users/EVERWEAR-PRICE-LIST-2025-26.pdf') }}" target="_blank" class="cat-btn cat-btn-primary">
+                        <a href="{{ url('users/EVERWEAR-PRICE-L') }}" target="_blank" class="cat-btn cat-btn-primary">
                             <i class="bi bi-eye"></i>
                             View catalogue
                         </a>
 
                         {{-- Download --}}
-                        <a href="{{ url('users/EVERWEAR-PRICE-LIST-2025-26.pdf') }}" download class="cat-btn cat-btn-secondary">
+                        <a href="{{ url('users/EVERWEAR-PRICE-L') }}" download class="cat-btn cat-btn-secondary">
                             <i class="bi bi-download"></i>
                             Download PDF
                         </a>
@@ -92,7 +92,7 @@
                         {{-- Copy Link --}}
                         <button id="copyLinkBtn"
                             onclick="
-                            navigator.clipboard.writeText('{{ url('users/EVERWEAR-PRICE-LIST-2025-26.pdf') }}').then(function() {
+                            navigator.clipboard.writeText('{{ url('users/EVERWEAR-PRICE-L') }}').then(function() {
                                 var btn = document.getElementById('copyLinkBtn');
                                 btn.classList.add('cat-btn-copied');
                                 btn.innerHTML = '<i class=\'bi bi-check2\'></i> Link copied!';
