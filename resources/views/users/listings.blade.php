@@ -378,7 +378,7 @@
             position: relative;
             overflow: hidden;
             background: var(--surface);
-            aspect-ratio: 3 / 4;
+            aspect-ratio: 4 / 4;
             /* consistent portrait ratio */
             flex-shrink: 0;
         }
