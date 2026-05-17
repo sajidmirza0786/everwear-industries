@@ -35,7 +35,7 @@
                             Thank you, {{ Str::before($order->name, ' ') }}!
                         </div>
                         <div style="font-size:12px;color:var(--soft);margin-top:3px;">
-                            Order <strong style="color:var(--ink);">#{{ $order->id }}</strong> placed · Confirmation sent
+                            Order <strong style="color:var(--ink);">#{{ $order->uuid }}</strong> placed · Confirmation sent
                             to <strong style="color:var(--ink);">{{ $order->email }}</strong>
                         </div>
                     </div>
@@ -47,7 +47,7 @@
                     {{-- Order ID + Status --}}
                     <div class="oc-meta-card">
                         <div class="oc-meta-label">Order ID</div>
-                        <div class="oc-meta-value">#{{ $order->id }}</div>
+                        <div class="oc-meta-value">#{{ $order->uuid }}</div>
                     </div>
                     <div class="oc-meta-card">
                         <div class="oc-meta-label">Status</div>
@@ -58,7 +58,8 @@
                     <div class="oc-meta-card">
                         <div class="oc-meta-label">Payment</div>
                         <div class="oc-meta-value" style="text-transform:capitalize;">
-                            {{ $order->payment_method === 'cod' ? 'Cash on Delivery' : 'Prepaid' }}
+                            {{-- {{ $order->payment_method === 'cod' ? 'Cash on Delivery' : 'Prepaid' }} --}}
+                            Pending
                         </div>
                     </div>
                     <div class="oc-meta-card">
@@ -106,7 +107,7 @@
                                         @endif
                                         <span style="font-size:11px;color:var(--soft-2);">Qty: {{ $item->quantity }}</span>
                                         <span
-                                            style="font-size:11px;color:var(--soft-2);">₹{{ number_format($item->price, 2) }}/unit</span>
+                                            style="font-size:11px;color:var(--soft-2);">₹{{ number_format($item->price, 2) }} (inc GST)/unit</span>
                                     </div>
                                 </div>
 

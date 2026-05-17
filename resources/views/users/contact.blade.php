@@ -243,7 +243,7 @@
                                         style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--soft);margin-bottom:4px;">
                                         Business Hours</div>
                                     <span style="font-size:14px;color:var(--ink);font-weight:500;">
-                                        Monday – Saturday, 11:00 AM – 7:00 PM
+                                        Monday – Saturday, 11:00 AM – 6:00 PM
                                     </span>
                                 </div>
                             </div>
