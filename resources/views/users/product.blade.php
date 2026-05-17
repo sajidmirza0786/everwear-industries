@@ -264,6 +264,7 @@
 
                     @php
                         $colorsvrs = App\Models\Product::where('color_group_id', $product->color_group_id)
+                            ->whereNotNull($product->color_group_id)
                             ->where('id', '!=', $product->id)
                             ->get();
                     @endphp
