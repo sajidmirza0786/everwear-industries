@@ -78,13 +78,13 @@
                     <div style="display:flex;flex-direction:column;gap:10px;">
 
                         {{-- View --}}
-                        <a href="{{ url('users/EVERWEAR-PRICE-L') }}" target="_blank" class="cat-btn cat-btn-primary">
+                        <a href="{{ url('users/final-catalogue-1.pdf') }}" target="_blank" class="cat-btn cat-btn-primary">
                             <i class="bi bi-eye"></i>
                             View catalogue
                         </a>
 
                         {{-- Download --}}
-                        <a href="{{ url('users/EVERWEAR-PRICE-L') }}" download class="cat-btn cat-btn-secondary">
+                        <a href="{{ url('users/final-catalogue-1.pdf') }}" download class="cat-btn cat-btn-secondary">
                             <i class="bi bi-download"></i>
                             Download PDF
                         </a>
@@ -92,7 +92,74 @@
                         {{-- Copy Link --}}
                         <button id="copyLinkBtn"
                             onclick="
-                            navigator.clipboard.writeText('{{ url('users/EVERWEAR-PRICE-L') }}').then(function() {
+                            navigator.clipboard.writeText('{{ url('users/final-catalogue-1.pdf') }}').then(function() {
+                                var btn = document.getElementById('copyLinkBtn');
+                                btn.classList.add('cat-btn-copied');
+                                btn.innerHTML = '<i class=\'bi bi-check2\'></i> Link copied!';
+                                setTimeout(function() {
+                                    btn.classList.remove('cat-btn-copied');
+                                    btn.innerHTML = '<i class=\'bi bi-link-45deg\'></i> Copy link';
+                                }, 2200);
+                            });
+                        "
+                            class="cat-btn cat-btn-ghost">
+                            <i class="bi bi-link-45deg"></i>
+                            Copy link
+                        </button>
+
+                    </div>
+
+                    {{-- Footer note --}}
+                    <p style="font-size:11px;color:var(--soft-2);text-align:center;margin:20px 0 0;letter-spacing:0.03em;">
+                        <i class="bi bi-info-circle"></i>
+                        If the PDF doesn't open, try the Download option above.
+                    </p>
+
+                </div>
+                <div class="catalogue-card">
+
+                    {{-- Icon + Title --}}
+                    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+                        <div
+                            style="width:50px;height:50px;border-radius:10px;background:var(--bg-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i class="bi bi-file-earmark-pdf" style="font-size:22px;color:var(--soft);"></i>
+                        </div>
+                        <div>
+                            <div style="font-size:16px;font-weight:600;color:var(--ink);line-height:1.2;">Everwear
+                                Industries</div>
+                            <div style="font-size:12px;color:var(--soft);letter-spacing:0.04em;margin-top:2px;">Product
+                                Catalogue &middot; PDF</div>
+                        </div>
+                    </div>
+
+                    {{-- Description --}}
+                    <p style="font-size:13px;color:var(--soft);line-height:1.7;margin:0 0 24px;">
+                        Browse our complete range of trophies, awards, and corporate mementos. View online or save a copy
+                        for your team.
+                    </p>
+
+                    {{-- Divider --}}
+                    <div style="border-top:1px solid var(--line);margin-bottom:20px;"></div>
+
+                    {{-- Actions --}}
+                    <div style="display:flex;flex-direction:column;gap:10px;">
+
+                        {{-- View --}}
+                        <a href="{{ url('users/product-catalogue.pdf') }}" target="_blank" class="cat-btn cat-btn-primary">
+                            <i class="bi bi-eye"></i>
+                            View catalogue
+                        </a>
+
+                        {{-- Download --}}
+                        <a href="{{ url('users/product-catalogue.pdf') }}" download class="cat-btn cat-btn-secondary">
+                            <i class="bi bi-download"></i>
+                            Download PDF
+                        </a>
+
+                        {{-- Copy Link --}}
+                        <button id="copyLinkBtn"
+                            onclick="
+                            navigator.clipboard.writeText('{{ url('users/product-catalogue.pdf') }}').then(function() {
                                 var btn = document.getElementById('copyLinkBtn');
                                 btn.classList.add('cat-btn-copied');
                                 btn.innerHTML = '<i class=\'bi bi-check2\'></i> Link copied!';
