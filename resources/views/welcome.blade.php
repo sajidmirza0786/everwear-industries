@@ -22,7 +22,7 @@
                             ->whereHas('category', fn($q) => $q->where('name', 'like', '%trophy%')->orWhere('name', 'like', '%trophies%'))
                             ->latest()->take(8)->get();
     $trendingMementos = Product::where('status', 'enable')
-                            ->whereHas('category', fn($q) => $q->where('name', 'like', '%memento%'))
+                            ->whereHas('category', fn($q) => $q->where('name', 'like', '%medal%'))
                             ->latest()->take(8)->get();
 
     $flashSale    = Product::where('status', 'enable')
@@ -47,7 +47,7 @@
                     <span class="section-eyebrow">Shop by category</span>
                     <h2 class="section-title">A trophy for <em>every story.</em></h2>
                 </div>
-                <a href="{{ route('listing') }}" class="btn btn-ghost">
+                <a href="{{ url('collections') }}" class="btn btn-ghost">
                     See all <i class="bi bi-arrow-right ms-1"></i>
                 </a>
             </div>
@@ -95,7 +95,7 @@
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#wmn">Trophies</button>
                     </li>
                     <li class="nav-item">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#mn">Mementos</button>
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#mn">Medals</button>
                     </li>
                 </ul>
             </div>
