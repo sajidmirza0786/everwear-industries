@@ -15,7 +15,7 @@ class ProductImageController extends Controller
     public function storeSingle(Request $request, Product $product)
     {
         $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:4048',
         ]);
 
         DB::beginTransaction();
