@@ -263,10 +263,13 @@
                     @endif
 
                     @php
-                        $colorsvrs = App\Models\Product::where('color_group_id','=', $product->color_group_id)
-                            ->whereNotNull($product->color_group_id)
-                            ->where('id', '!=', $product->id)
-                            ->get();
+                        $colorsvrs = collect();
+                        if ($product->color_group_id) {
+                            $colorsvrs = App\Models\Product::where('color_group_id', $product->color_group_id)
+                                ->whereNotNull('color_group_id')
+                                ->where('id', '!=', $product->id)
+                                ->get();
+                        }
                     @endphp
 
                     @if ($colorsvrs->isNotEmpty())
