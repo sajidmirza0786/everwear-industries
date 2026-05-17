@@ -48,10 +48,10 @@
     {{-- Main Content --}}
     <section class="section-tight">
         <div class="container">
-            <div style="display:flex;justify-content:center;padding:48px 0;">
-                <div class="catalogue-card">
+            <div class="catalogue-cards-wrap">
 
-                    {{-- Icon + Title --}}
+                {{-- Card 1 --}}
+                <div class="catalogue-card">
                     <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
                         <div
                             style="width:50px;height:50px;border-radius:10px;background:var(--bg-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -64,61 +64,30 @@
                                 Catalogue &middot; PDF</div>
                         </div>
                     </div>
-
-                    {{-- Description --}}
                     <p style="font-size:13px;color:var(--soft);line-height:1.7;margin:0 0 24px;">
                         Browse our complete range of trophies, awards, and corporate mementos. View online or save a copy
                         for your team.
                     </p>
-
-                    {{-- Divider --}}
                     <div style="border-top:1px solid var(--line);margin-bottom:20px;"></div>
-
-                    {{-- Actions --}}
                     <div style="display:flex;flex-direction:column;gap:10px;">
-
-                        {{-- View --}}
                         <a href="{{ url('users/final-catalogue-1.pdf') }}" target="_blank" class="cat-btn cat-btn-primary">
-                            <i class="bi bi-eye"></i>
-                            View catalogue
+                            <i class="bi bi-eye"></i> View catalogue
                         </a>
-
-                        {{-- Download --}}
                         <a href="{{ url('users/final-catalogue-1.pdf') }}" download class="cat-btn cat-btn-secondary">
-                            <i class="bi bi-download"></i>
-                            Download PDF
+                            <i class="bi bi-download"></i> Download PDF
                         </a>
-
-                        {{-- Copy Link --}}
-                        <button id="copyLinkBtn"
-                            onclick="
-                            navigator.clipboard.writeText('{{ url('users/final-catalogue-1.pdf') }}').then(function() {
-                                var btn = document.getElementById('copyLinkBtn');
-                                btn.classList.add('cat-btn-copied');
-                                btn.innerHTML = '<i class=\'bi bi-check2\'></i> Link copied!';
-                                setTimeout(function() {
-                                    btn.classList.remove('cat-btn-copied');
-                                    btn.innerHTML = '<i class=\'bi bi-link-45deg\'></i> Copy link';
-                                }, 2200);
-                            });
-                        "
-                            class="cat-btn cat-btn-ghost">
-                            <i class="bi bi-link-45deg"></i>
-                            Copy link
+                        <button id="copyLinkBtn1" class="cat-btn cat-btn-ghost"
+                            onclick="copyLink('copyLinkBtn1', '{{ url('users/final-catalogue-1.pdf') }}')">
+                            <i class="bi bi-link-45deg"></i> Copy link
                         </button>
-
                     </div>
-
-                    {{-- Footer note --}}
                     <p style="font-size:11px;color:var(--soft-2);text-align:center;margin:20px 0 0;letter-spacing:0.03em;">
-                        <i class="bi bi-info-circle"></i>
-                        If the PDF doesn't open, try the Download option above.
+                        <i class="bi bi-info-circle"></i> If the PDF doesn't open, try the Download option above.
                     </p>
-
                 </div>
-                <div class="catalogue-card">
 
-                    {{-- Icon + Title --}}
+                {{-- Card 2 --}}
+                <div class="catalogue-card">
                     <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
                         <div
                             style="width:50px;height:50px;border-radius:10px;background:var(--bg-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -131,68 +100,57 @@
                                 Catalogue &middot; PDF</div>
                         </div>
                     </div>
-
-                    {{-- Description --}}
                     <p style="font-size:13px;color:var(--soft);line-height:1.7;margin:0 0 24px;">
                         Browse our complete range of trophies, awards, and corporate mementos. View online or save a copy
                         for your team.
                     </p>
-
-                    {{-- Divider --}}
                     <div style="border-top:1px solid var(--line);margin-bottom:20px;"></div>
-
-                    {{-- Actions --}}
                     <div style="display:flex;flex-direction:column;gap:10px;">
-
-                        {{-- View --}}
                         <a href="{{ url('users/product-catalogue.pdf') }}" target="_blank" class="cat-btn cat-btn-primary">
-                            <i class="bi bi-eye"></i>
-                            View catalogue
+                            <i class="bi bi-eye"></i> View catalogue
                         </a>
-
-                        {{-- Download --}}
                         <a href="{{ url('users/product-catalogue.pdf') }}" download class="cat-btn cat-btn-secondary">
-                            <i class="bi bi-download"></i>
-                            Download PDF
+                            <i class="bi bi-download"></i> Download PDF
                         </a>
-
-                        {{-- Copy Link --}}
-                        <button id="copyLinkBtn"
-                            onclick="
-                            navigator.clipboard.writeText('{{ url('users/product-catalogue.pdf') }}').then(function() {
-                                var btn = document.getElementById('copyLinkBtn');
-                                btn.classList.add('cat-btn-copied');
-                                btn.innerHTML = '<i class=\'bi bi-check2\'></i> Link copied!';
-                                setTimeout(function() {
-                                    btn.classList.remove('cat-btn-copied');
-                                    btn.innerHTML = '<i class=\'bi bi-link-45deg\'></i> Copy link';
-                                }, 2200);
-                            });
-                        "
-                            class="cat-btn cat-btn-ghost">
-                            <i class="bi bi-link-45deg"></i>
-                            Copy link
+                        <button id="copyLinkBtn2" class="cat-btn cat-btn-ghost"
+                            onclick="copyLink('copyLinkBtn2', '{{ url('users/product-catalogue.pdf') }}')">
+                            <i class="bi bi-link-45deg"></i> Copy link
                         </button>
-
                     </div>
-
-                    {{-- Footer note --}}
                     <p style="font-size:11px;color:var(--soft-2);text-align:center;margin:20px 0 0;letter-spacing:0.03em;">
-                        <i class="bi bi-info-circle"></i>
-                        If the PDF doesn't open, try the Download option above.
+                        <i class="bi bi-info-circle"></i> If the PDF doesn't open, try the Download option above.
                     </p>
-
                 </div>
+
             </div>
         </div>
     </section>
 
     <style>
+        .catalogue-cards-wrap {
+            display: flex;
+            flex-direction: column;
+            /* stack on mobile */
+            align-items: center;
+            gap: 16px;
+            padding: 32px 0 48px;
+        }
+
+        @media (min-width: 768px) {
+            .catalogue-cards-wrap {
+                flex-direction: row;
+                /* side by side on desktop */
+                flex-wrap: wrap;
+                justify-content: center;
+                padding: 48px 0;
+            }
+        }
+
         .catalogue-card {
             background: var(--surface);
             border: 1px solid var(--line);
             border-radius: 14px;
-            padding: 28px 28px 24px;
+            padding: 24px 20px 20px;
             width: 100%;
             max-width: 420px;
             box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
@@ -259,9 +217,24 @@
 
         @media (max-width: 480px) {
             .catalogue-card {
-                padding: 22px 18px 18px;
+                padding: 20px 16px 16px;
                 border-radius: 10px;
             }
         }
     </style>
+
+    <script>
+        function copyLink(btnId, url) {
+            navigator.clipboard.writeText(url).then(function() {
+                var btn = document.getElementById(btnId);
+                btn.classList.add('cat-btn-copied');
+                btn.innerHTML = "<i class='bi bi-check2'></i> Link copied!";
+                setTimeout(function() {
+                    btn.classList.remove('cat-btn-copied');
+                    btn.innerHTML = "<i class='bi bi-link-45deg'></i> Copy link";
+                }, 2200);
+            });
+        }
+    </script>
+
 @endsection
