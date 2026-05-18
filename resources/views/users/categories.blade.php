@@ -60,8 +60,8 @@
                                 </span>
                                 <h3 class="col-card-name">{{ $cat->name }}</h3>
                                 <p class="col-card-desc">
-                                    @if (!empty($cat->description))
-                                        {{ Str::limit($cat->description, 90) }}
+                                    @if (!empty($cat->long_description))
+                                        {{ Str::limit($cat->long_description, 90) }}
                                     @else
                                         Premium {{ strtolower($cat->name) }} crafted for every occasion and milestone.
                                     @endif
