@@ -13,7 +13,8 @@
     $categories   = Category::where('status', 'enable')
                         ->whereNull('parent_id')
                         ->withCount('products')
-                        ->orderByDesc('id')
+                        ->orderBy('id', 'asc')
+                        ->latest()
                         ->take(8)
                         ->get();
 
