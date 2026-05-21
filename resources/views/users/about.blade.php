@@ -8,7 +8,7 @@
 
 @section('content')
     <section class="about-hero"
-        style="background-image:url('{{ url('users/assets/images/abt.jpeg') }}')"
+        style="background-image:url('{{ url('users/assets/images/7262.png') }}')"
         data-testid="about-hero">
         <div class="container">
             <div class="hero-eyebrow" style="color:#e7d6b3;border-color:rgba(255,255,255,0.4)">Since 2003</div>
