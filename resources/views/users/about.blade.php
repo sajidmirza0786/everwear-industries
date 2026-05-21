@@ -12,9 +12,9 @@
         data-testid="about-hero">
         <div class="container">
             <div class="hero-eyebrow" style="color:#e7d6b3;border-color:rgba(255,255,255,0.4)">Since 2003</div>
-            <h1>The Legend of<br> Award Products.</h1>
+            {{-- <h1>The Legend of<br> Award Products.</h1>
             <p style="max-width:480px; color:rgba(255,255,255,0.85);">At Everwear Industries, we craft more than trophies—we
-                create enduring symbols of excellence.</p>
+                create enduring symbols of excellence.</p> --}}
         </div>
     </section>
 
