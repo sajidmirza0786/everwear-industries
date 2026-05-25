@@ -69,8 +69,8 @@
                                 @endif
                                 <div class="cat-card-arrow"><i class="bi bi-arrow-up-right"></i></div>
                                 <div class="cat-card-body">
-                                    <span class="text-dark">{{ $cat->products_count }} designs</span>
-                                    <h5 class="text-dark">{{ $cat->name }}</h5>
+                                    <span>{{ $cat->products_count }} designs</span>
+                                    <h5>{{ $cat->name }}</h5>
                                 </div>
                             </a>
                         </div>
