@@ -216,9 +216,14 @@ class CheckoutController extends Controller
 
             DB::commit();
 
+            $emails = [
+                $order->email, 
+                'order@everwearindustries.com'
+            ];
+
             // ── Send invoice email ──
             try {
-                Mail::to($order->email)->send(new OrderInvoiceMail($order->load('items.product')));
+                Mail::to($emails)->send(new OrderInvoiceMail($order->load('items.product')));
             } catch (\Throwable $e) {
                 // Don't fail the order if mail fails
                 \Log::error('Order invoice mail failed: ' . $e->getMessage());

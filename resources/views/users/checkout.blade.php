@@ -421,4 +421,23 @@
         });
     </script>
 
+    <script>
+        document.getElementById('checkoutForm').addEventListener('submit', function() {
+            const desktopBtn = this.querySelector('button[type="submit"]');
+            const mobileBtn = document.querySelector('button[form="checkoutForm"]');
+
+            const loadingHtml =
+                `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Placing Order…`;
+
+            if (desktopBtn) {
+                desktopBtn.disabled = true;
+                desktopBtn.innerHTML = loadingHtml;
+            }
+            if (mobileBtn) {
+                mobileBtn.disabled = true;
+                mobileBtn.innerHTML = loadingHtml;
+            }
+        });
+    </script>
+
 @endsection
