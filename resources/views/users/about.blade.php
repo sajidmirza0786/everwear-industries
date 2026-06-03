@@ -8,15 +8,31 @@
 
 @section('content')
     <section class="about-hero"
+        style="
+            background-image: url('{{ url('users/assets/images/7262.png') }}');
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+        "
+        data-testid="about-hero">
+        <div class="container">
+            <div class="hero-eyebrow" style="color:#e7d6b3; border-color:rgba(255,255,255,0.4)">Since 2003</div>
+        </div>
+    </section>
+    {{-- <section class="about-hero"
         style="background-image:url('{{ url('users/assets/images/7262.png') }}')"
         data-testid="about-hero">
         <div class="container">
-            <div class="hero-eyebrow" style="color:#e7d6b3;border-color:rgba(255,255,255,0.4)">Since 2003</div>
+            <div class="hero-eyebrow" style="color:#e7d6b3;border-color:rgba(255,255,255,0.4)">Since 2003</div> --}}
             {{-- <h1>The Legend of<br> Award Products.</h1>
             <p style="max-width:480px; color:rgba(255,255,255,0.85);">At Everwear Industries, we craft more than trophies—we
                 create enduring symbols of excellence.</p> --}}
-        </div>
-    </section>
+        {{-- </div>
+    </section> --}}
 
     <section class="section" data-testid="about-story">
         <div class="container">
