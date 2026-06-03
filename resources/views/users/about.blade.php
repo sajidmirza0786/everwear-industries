@@ -7,9 +7,8 @@
 @endsection
 
 @section('content')
-    <section class="p-0">
-        <img src="{{ url('users/assets/images/7262.png') }}" width="100%"/>
-    </section>
+    
+    <img src="{{ url('users/assets/images/7262.png') }}" width="100%"/>
     {{-- <section class="about-hero"
         style="background-image:url('{{ url('users/assets/images/7262.png') }}')"
         data-testid="about-hero">
