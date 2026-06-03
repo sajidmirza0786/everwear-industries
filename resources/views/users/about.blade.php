@@ -7,7 +7,7 @@
 @endsection
 
 @section('content')
-    <section class="about-hero">
+    <section class="p-0">
         <img src="{{ url('users/assets/images/7262.png') }}" width="100%"/>
     </section>
     {{-- <section class="about-hero"
