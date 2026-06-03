@@ -7,21 +7,8 @@
 @endsection
 
 @section('content')
-    <section class="about-hero"
-        style="
-            background-image: url('{{ url('users/assets/images/7262.png') }}');
-            background-size: cover;
-            background-position: center center;
-            background-repeat: no-repeat;
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-        "
-        data-testid="about-hero">
-        <div class="container">
-            <div class="hero-eyebrow" style="color:#e7d6b3; border-color:rgba(255,255,255,0.4)">Since 2003</div>
-        </div>
+    <section class="about-hero">
+        <img src="{{ url('users/assets/images/7262.png') }}" width="100%"/>
     </section>
     {{-- <section class="about-hero"
         style="background-image:url('{{ url('users/assets/images/7262.png') }}')"
