@@ -173,6 +173,8 @@
                                     <tr>
                                         <th scope="col">#</th>
                                         <th scope="col">Product</th>
+                                        <th scope="col">Code</th>
+                                        <th scope="col">Size</th>
                                         <th scope="col">Qty</th>
                                         <th scope="col">Unit Price</th>
                                         <th scope="col">Item Shipping</th>
@@ -191,6 +193,8 @@
                                                     <br><small class="text-muted">SKU: {{ $item->product->sku }}</small>
                                                 @endif
                                             </td>
+                                            <td>{{ $item->product->code ?? '' }}</td>
+                                            <td>{{ $item->productAttribute->size ?? '' }}</td>
                                             <td>{{ $item->quantity }}</td>
                                             <td>₹{{ number_format($item->price, 2) }}</td>
                                             <td>₹{{ number_format($item->shipping_charge ?? 0, 2) }}</td> {{-- Assuming shipping_charge is on order_items --}}
