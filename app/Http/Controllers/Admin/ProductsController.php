@@ -65,7 +65,14 @@ class ProductsController extends Controller
             'long_description' => 'nullable|string',
             'video_url'        => 'nullable|string',
             'color_group_id'   => 'nullable|string',
+            'gst'              => 'required|numeric|min:0|max:100',
         ]);
+
+        // Auto-calculate ex-GST selling price:
+        $validated['ex_gst_selling'] = $this->calculateExGstPrice(
+            $validated['selling'],
+            $validated['gst'] ?? null
+        );
 
         DB::beginTransaction();
         try {
@@ -115,7 +122,16 @@ class ProductsController extends Controller
             'long_description' => 'nullable|string',
             'video_url'        => 'nullable|string',
             'color_group_id'   => 'nullable|string',
+            'gst'              => 'required|numeric|min:0|max:100',
         ]);
+
+        // Auto-calculate ex-GST selling price:
+        // ex_gst_selling = selling / (1 + gst / 100)
+        // If GST is 0 or not provided, ex_gst_selling equals selling price.
+        $validated['ex_gst_selling'] = $this->calculateExGstPrice(
+            $validated['selling'],
+            $validated['gst'] ?? null
+        );
 
         DB::beginTransaction();
         try {
@@ -199,6 +215,26 @@ class ProductsController extends Controller
     // =========================================================
     //  Private Helpers
     // =========================================================
+
+    /**
+     * Calculate the ex-GST (before tax) selling price.
+     *
+     * Formula: ex_gst_selling = selling / (1 + gst / 100)
+     *
+     * Examples:
+     *   selling = 118, gst = 18%  →  118 / 1.18  =  100.00
+     *   selling = 105, gst =  5%  →  105 / 1.05  =  100.00
+     *   selling = 100, gst =  0%  →  100 / 1.00  =  100.00
+     *   selling = 100, gst = null →  100 (no GST applied)
+     */
+    private function calculateExGstPrice(float $selling, ?float $gst): float
+    {
+        if ($gst === null || $gst <= 0) {
+            return round($selling, 2);
+        }
+
+        return round($selling / (1 + $gst / 100), 2);
+    }
 
     /**
      * Generate a unique slug for the given table.

@@ -120,7 +120,7 @@ class CartController extends Controller
                 $cart[$cartKey]['price']           = $sellingPrice;
                 $cart[$cartKey]['shipping_charge'] = $this->shipping($product, $sellingPrice, $newQty);
             } else {
-                $variantLabel           = $atr ? ' – ' . $atr->size : '';
+                $variantLabel   = $atr ? ' – ' . $atr->size : '';
                 $cart[$cartKey] = [
                     'product_id'           => $product->id,
                     'product_attribute_id' => $atr?->id,
@@ -141,7 +141,9 @@ class CartController extends Controller
     public function view()
     {
         $cartItems     = [];
-        $total         = 0;
+        $totalExGst    = 0;  // sum of ex-GST subtotals
+        $totalGst      = 0;  // sum of GST amounts
+        $total         = 0;  // sum of selling-price subtotals (ex-GST + GST)
         $totalShipping = 0;
 
         if (Auth::check()) {
@@ -149,25 +151,65 @@ class CartController extends Controller
                 ->with(['product', 'productAttribute'])
                 ->get()
                 ->map(function ($item) {
-                    // Attach variant label for display
                     $item->variant_label = $item->productAttribute
                         ? $item->productAttribute->size
                         : null;
                     return $item;
                 });
 
-            $total         = $cartItems->sum(fn($i) => $i->quantity * $i->price);
-            $totalShipping = $cartItems->sum('shipping_charge');
+            foreach ($cartItems as $item) {
+                $product      = $item->product;
+                $qty          = $item->quantity;
+                $sellingPrice = $item->price;               // GST-inclusive unit price
+
+                // Derive ex-GST price from the actual cart price + product GST rate.
+                // Formula: ex_gst = price / (1 + gst_rate / 100)
+                // This is correct even when $item->price differs from product->selling
+                // (e.g. variant pricing, promotional prices, etc.)
+                $gstRate      = (float) ($product->gst ?? 0);
+                $exGstUnit    = $gstRate > 0
+                    ? round($sellingPrice / (1 + $gstRate / 100), 2)
+                    : $sellingPrice;
+                $gstUnit      = round($sellingPrice - $exGstUnit, 2);
+
+                $item->subtotal_ex_gst = round($exGstUnit * $qty, 2);
+                $item->gst_amount      = round($gstUnit    * $qty, 2);
+                $item->gst_rate        = $gstRate;
+
+                $totalExGst    += $item->subtotal_ex_gst;
+                $totalGst      += $item->gst_amount;
+                $total         += $sellingPrice * $qty;
+                $totalShipping += $item->shipping_charge;
+            }
         } else {
             $cart = session()->get('cart', []);
             foreach ($cart as $item) {
-                $cartItems[]    = (object) $item;
-                $total         += $item['quantity'] * $item['price'];
+                $obj          = (object) $item;
+                $product      = \App\Models\Product::find($item['product_id']);
+                $qty          = $item['quantity'];
+                $sellingPrice = $item['price'];
+
+                $gstRate      = (float) ($product?->gst ?? 0);
+                $exGstUnit    = $gstRate > 0
+                    ? round($sellingPrice / (1 + $gstRate / 100), 2)
+                    : $sellingPrice;
+                $gstUnit      = round($sellingPrice - $exGstUnit, 2);
+
+                $obj->subtotal_ex_gst = round($exGstUnit * $qty, 2);
+                $obj->gst_amount      = round($gstUnit    * $qty, 2);
+                $obj->gst_rate        = $gstRate;
+
+                $cartItems[]    = $obj;
+                $totalExGst    += $obj->subtotal_ex_gst;
+                $totalGst      += $obj->gst_amount;
+                $total         += $sellingPrice * $qty;
                 $totalShipping += $item['shipping_charge'];
             }
         }
 
-        return view('users.cart', compact('cartItems', 'total', 'totalShipping'));
+        return view('users.cart', compact(
+            'cartItems', 'total', 'totalShipping', 'totalExGst', 'totalGst'
+        ));
     }
 
     public function update(Request $request)

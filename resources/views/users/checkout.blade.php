@@ -203,37 +203,12 @@
                         </div>
                     </div>
 
-                    {{-- Payment Method --}}
-                    {{-- <div style="border-top: 1px solid var(--line); padding-top: 24px; margin-bottom: 24px;"> --}}
-                    {{-- <div
-                            style="font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent-2); font-weight: 600; margin-bottom: 16px;">
-                            Payment Method
-                        </div> --}}
-
-                    {{-- COD Option --}}
+                    {{-- Payment Method (COD hidden input) --}}
                     <label for="pay_cod"
                         style="display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px; border: 1px solid var(--line); background: var(--bg); cursor: pointer; margin-bottom: 10px; transition: border-color 0.2s;">
                         <input type="hidden" id="pay_cod" name="payment_method" value="cod" checked required
                             style="margin-top: 2px; accent-color: var(--accent);">
-                        {{-- <div>
-                                <div style="font-size: 14px; font-weight: 500;">Cash on Delivery</div>
-                                <div style="font-size: 12px; color: var(--soft); margin-top: 2px;">Pay when your order
-                                    arrives at your door.</div>
-                            </div> --}}
                     </label>
-
-                    {{-- Online Payment Option --}}
-                    {{-- <label for="pay_online"
-                            style="display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px; border: 1px solid var(--line); background: var(--bg); cursor: pointer; transition: border-color 0.2s;">
-                            <input type="radio" id="pay_online" name="payment_method" value="prepaid" required
-                                style="margin-top: 2px; accent-color: var(--accent);">
-                            <div>
-                                <div style="font-size: 14px; font-weight: 500;">Online Payment</div>
-                                <div style="font-size: 12px; color: var(--soft); margin-top: 2px;">UPI, cards, net banking
-                                    & wallets.</div>
-                            </div>
-                        </label> --}}
-                    {{-- </div> --}}
 
                     {{-- Submit — desktop only; mobile uses sticky bar --}}
                     <div class="d-none d-lg-block">
@@ -255,121 +230,172 @@
                 <div class="cart-summary d-none d-lg-block">
                     <h6 class="section-eyebrow mb-4">Order Summary</h6>
 
-                    {{-- Items --}}
+                    {{-- Items list --}}
                     @forelse($cartItems as $item)
                         @php
-                            $product = isset($item->product)
+                            $product      = isset($item->product)
                                 ? $item->product
                                 : \App\Models\Product::find($item->product_id);
-                            $atrId = $item->product_attribute_id ?? null;
-                            $atr = $atrId ? \App\Models\ProductAttribute::find($atrId) : null;
+                            $atrId        = $item->product_attribute_id ?? null;
+                            $atr          = $atrId ? \App\Models\ProductAttribute::find($atrId) : null;
                             $variantLabel = $atr ? $atr->size : null;
+                            $itemTotal    = $item->quantity * $item->price; // GST-inclusive line total (excl. shipping)
                         @endphp
                         @if (!$product)
                             @continue
                         @endif
-                        <div
-                            style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);">
+                        <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);">
                             <div style="flex:1;min-width:0;">
-                                <div
-                                    style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                                     {{ $product->name }}
                                 </div>
                                 @if ($variantLabel)
                                     <div style="margin-top:3px;">
-                                        <span
-                                            style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2);background:rgba(0,0,0,.05);border:1px solid var(--line-strong);padding:1px 7px;border-radius:2px;">
+                                        <span style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2);background:rgba(0,0,0,.05);border:1px solid var(--line-strong);padding:1px 7px;border-radius:2px;">
                                             {{ $variantLabel }}
                                         </span>
                                     </div>
                                 @endif
                                 <div style="font-size:11px;color:var(--soft);margin-top:3px;">
-                                    Qty: {{ $item->quantity }} &nbsp;·&nbsp; Ship:
-                                    ₹{{ number_format($item->shipping_charge, 2) }}
+                                    Qty: {{ $item->quantity }}
+                                    &nbsp;·&nbsp;
+                                    @if (($item->gst_rate ?? 0) > 0)
+                                        GST ({{ $item->gst_rate }}%): ₹{{ number_format($item->gst_amount, 2) }}
+                                        &nbsp;·&nbsp;
+                                    @endif
+                                    Ship: ₹{{ number_format($item->shipping_charge, 2) }}
                                 </div>
                             </div>
                             <div style="font-size:13px;font-weight:600;white-space:nowrap;flex-shrink:0;">
-                                ₹{{ number_format($item->quantity * $item->price + $item->shipping_charge, 2) }}
+                                ₹{{ number_format($itemTotal + $item->shipping_charge, 2) }}
                             </div>
                         </div>
                     @empty
-                        <div style="text-align:center;padding:24px 0;color:var(--soft);font-size:14px;">Your cart is empty.
-                        </div>
+                        <div style="text-align:center;padding:24px 0;color:var(--soft);font-size:14px;">Your cart is empty.</div>
                     @endforelse
 
-                    {{-- Totals --}}
+                    {{-- Totals breakdown --}}
                     <div class="row-line mt-3">
-                        <span style="color: var(--soft); font-size: 14px;">Subtotal</span>
-                        <span style="font-size: 14px;">₹{{ number_format($total, 2) }}</span>
+                        <span style="color:var(--soft);font-size:14px;">
+                            Subtotal <span style="font-size:11px;">(excl. GST)</span>
+                        </span>
+                        <span style="font-size:14px;">₹{{ number_format($totalExGst, 2) }}</span>
                     </div>
+
+                    @if ($totalGst > 0)
+                        <div class="row-line">
+                            <span style="color:var(--soft);font-size:14px;">
+                                GST
+                                <i class="bi bi-info-circle" style="font-size:11px;cursor:help;"
+                                   title="Goods & Services Tax included in your order"></i>
+                            </span>
+                            <span style="font-size:14px;">₹{{ number_format($totalGst, 2) }}</span>
+                        </div>
+                    @endif
+
                     <div class="row-line">
-                        <span style="color: var(--soft); font-size: 14px;">Shipping</span>
-                        <span style="font-size: 14px;">₹{{ number_format($totalShipping, 2) }}</span>
+                        <span style="color:var(--soft);font-size:14px;">Shipping</span>
+                        <span style="font-size:14px;">₹{{ number_format($totalShipping, 2) }}</span>
                     </div>
+
+                    <div style="border-top:1px solid var(--line-strong);margin:8px 0;"></div>
+
                     <div class="row-line total">
-                        <span>Total</span>
+                        <span>Total <span style="font-size:11px;font-weight:400;color:var(--soft);">(incl. GST)</span></span>
                         <span>₹{{ number_format($total + $totalShipping, 2) }}</span>
                     </div>
+
+                    @if ($totalGst > 0)
+                        <p style="font-size:11px;color:var(--soft-2);text-align:right;margin-top:4px;letter-spacing:.04em;">
+                            ₹{{ number_format($totalGst, 2) }} GST included in total
+                        </p>
+                    @endif
                 </div>
 
-                {{-- Mobile inline summary (no sticky, just accordion-style) --}}
-                <div class="d-lg-none" style="border: 1px solid var(--line); background: var(--surface);">
+                {{-- Mobile inline summary (accordion) --}}
+                <div class="d-lg-none" style="border:1px solid var(--line);background:var(--surface);">
                     <button type="button"
                         onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'; this.querySelector('.toggle-icon').style.transform = this.nextElementSibling.style.display === 'none' ? 'rotate(0deg)' : 'rotate(180deg)';"
-                        style="width: 100%; background: transparent; border: none; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 13px; font-weight: 500; letter-spacing: 0.04em;">
+                        style="width:100%;background:transparent;border:none;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-size:13px;font-weight:500;letter-spacing:0.04em;">
                         <span>
-                            <i class="bi bi-bag me-2" style="color: var(--accent);"></i>
+                            <i class="bi bi-bag me-2" style="color:var(--accent);"></i>
                             Show order summary
-                            <strong style="margin-left: 8px;">₹{{ number_format($total + $totalShipping, 2) }}</strong>
+                            <strong style="margin-left:8px;">₹{{ number_format($total + $totalShipping, 2) }}</strong>
                         </span>
                         <i class="bi bi-chevron-down toggle-icon"
-                            style="transition: transform 0.2s; font-size: 14px; color: var(--soft);"></i>
+                            style="transition:transform 0.2s;font-size:14px;color:var(--soft);"></i>
                     </button>
-                    <div style="display: none; border-top: 1px solid var(--line); padding: 12px 16px;">
+
+                    <div style="display:none;border-top:1px solid var(--line);padding:12px 16px;">
+
+                        {{-- Items --}}
                         @forelse($cartItems as $item)
                             @php
-                                $product = isset($item->product)
+                                $product      = isset($item->product)
                                     ? $item->product
                                     : \App\Models\Product::find($item->product_id);
-                                $atrId = $item->product_attribute_id ?? null;
-                                $atr = $atrId ? \App\Models\ProductAttribute::find($atrId) : null;
+                                $atrId        = $item->product_attribute_id ?? null;
+                                $atr          = $atrId ? \App\Models\ProductAttribute::find($atrId) : null;
                                 $variantLabel = $atr ? $atr->size : null;
+                                $itemTotal    = $item->quantity * $item->price;
                             @endphp
                             @if (!$product)
                                 @continue
                             @endif
-                            <div
-                                style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;">
+                            <div style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;">
                                 <div>
                                     <div style="font-weight:500;">{{ $product->name }}</div>
                                     @if ($variantLabel)
-                                        <span
-                                            style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2);background:rgba(0,0,0,.05);border:1px solid var(--line-strong);padding:1px 7px;border-radius:2px;display:inline-block;margin-top:2px;">
+                                        <span style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2);background:rgba(0,0,0,.05);border:1px solid var(--line-strong);padding:1px 7px;border-radius:2px;display:inline-block;margin-top:2px;">
                                             {{ $variantLabel }}
                                         </span>
                                     @endif
                                     <div style="color:var(--soft);font-size:11px;margin-top:3px;">
-                                        Qty: {{ $item->quantity }} · Ship: ₹{{ number_format($item->shipping_charge, 2) }}
+                                        Qty: {{ $item->quantity }}
+                                        @if (($item->gst_rate ?? 0) > 0)
+                                            · GST ({{ $item->gst_rate }}%): ₹{{ number_format($item->gst_amount, 2) }}
+                                        @endif
+                                        · Ship: ₹{{ number_format($item->shipping_charge, 2) }}
                                     </div>
                                 </div>
                                 <div style="font-weight:600;white-space:nowrap;">
-                                    ₹{{ number_format($item->quantity * $item->price + $item->shipping_charge, 2) }}
+                                    ₹{{ number_format($itemTotal + $item->shipping_charge, 2) }}
                                 </div>
                             </div>
                         @empty
                         @endforelse
-                        <div
-                            style="display: flex; justify-content: space-between; padding: 10px 0 4px; font-size: 13px; color: var(--soft);">
-                            <span>Subtotal</span><span>₹{{ number_format($total, 2) }}</span>
+
+                        {{-- Subtotal (ex-GST) --}}
+                        <div style="display:flex;justify-content:space-between;padding:10px 0 4px;font-size:13px;color:var(--soft);">
+                            <span>Subtotal <span style="font-size:11px;">(excl. GST)</span></span>
+                            <span>₹{{ number_format($totalExGst, 2) }}</span>
                         </div>
-                        <div
-                            style="display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; color: var(--soft);">
-                            <span>Shipping</span><span>₹{{ number_format($totalShipping, 2) }}</span>
+
+                        {{-- GST row --}}
+                        @if ($totalGst > 0)
+                            <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:var(--soft);">
+                                <span>GST</span>
+                                <span>₹{{ number_format($totalGst, 2) }}</span>
+                            </div>
+                        @endif
+
+                        {{-- Shipping --}}
+                        <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:var(--soft);">
+                            <span>Shipping</span>
+                            <span>₹{{ number_format($totalShipping, 2) }}</span>
                         </div>
-                        <div
-                            style="display: flex; justify-content: space-between; padding: 10px 0 4px; font-size: 16px; font-weight: 600; border-top: 1px solid var(--line-strong); margin-top: 6px;">
-                            <span>Total</span><span>₹{{ number_format($total + $totalShipping, 2) }}</span>
+
+                        {{-- Grand Total --}}
+                        <div style="display:flex;justify-content:space-between;padding:10px 0 4px;font-size:16px;font-weight:600;border-top:1px solid var(--line-strong);margin-top:6px;">
+                            <span>Total <span style="font-size:11px;font-weight:400;color:var(--soft);">(incl. GST)</span></span>
+                            <span>₹{{ number_format($total + $totalShipping, 2) }}</span>
                         </div>
+
+                        @if ($totalGst > 0)
+                            <p style="font-size:11px;color:var(--soft-2);text-align:right;margin-top:2px;">
+                                ₹{{ number_format($totalGst, 2) }} GST included
+                            </p>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -378,45 +404,46 @@
     </div>
 
     {{-- MOBILE: spacer + sticky Place Order bar --}}
-    <div class="d-lg-none" style="height: 90px;" aria-hidden="true"></div>
+    <div class="d-lg-none" style="height:90px;" aria-hidden="true"></div>
     <div class="d-lg-none p-2"
-        style="position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        z-index: 91;
-        background: var(--bg);
-        border-top: 1px solid var(--line-strong);
-        box-shadow: 0 -2px 16px rgba(26,20,16,0.09);">
+        style="position:fixed;bottom:0;left:0;right:0;z-index:91;background:var(--bg);border-top:1px solid var(--line-strong);box-shadow:0 -2px 16px rgba(26,20,16,0.09);">
         <div class="d-flex align-items-center justify-content-between gap-3">
             <div style="line-height:1.25;">
-                <div style="font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--soft-2);">Total
+                <div style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--soft-2);">
+                    Total <span style="text-transform:none;letter-spacing:0;">(incl. GST)</span>
                 </div>
-                <div style="font-family:var(--font-display); font-size:18px; font-weight:500;">
-                    ₹{{ number_format($total + $totalShipping, 2) }}</div>
+                <div style="font-family:var(--font-display);font-size:18px;font-weight:500;">
+                    ₹{{ number_format($total + $totalShipping, 2) }}
+                </div>
+                @if ($totalGst > 0)
+                    <div style="font-size:11px;color:var(--soft);">
+                        ₹{{ number_format($totalGst, 2) }} GST
+                        @if ($totalShipping > 0) · @endif
+                        @if ($totalShipping > 0) ₹{{ number_format($totalShipping, 2) }} ship @endif
+                    </div>
+                @endif
             </div>
             <button type="submit" form="checkoutForm" class="btn btn-dark flex-shrink-0"
-                style="letter-spacing:0.1em; text-transform:uppercase; font-size:12px; padding:10px 20px;">
+                style="letter-spacing:0.1em;text-transform:uppercase;font-size:12px;padding:10px 20px;">
                 Place Order <i class="bi bi-arrow-right ms-1"></i>
             </button>
         </div>
     </div>
 
     {{-- Hidden logout form --}}
-    <form id="logoutForm" action="{{ route('logout') }}" method="POST" style="display: none;">
+    <form id="logoutForm" action="{{ route('logout') }}" method="POST" style="display:none;">
         @csrf
     </form>
 
     <script>
-        // Highlight selected payment method border
         document.querySelectorAll('input[name="payment_method"]').forEach(function(radio) {
             radio.addEventListener('change', function() {
                 document.querySelectorAll('input[name="payment_method"]').forEach(function(r) {
                     r.closest('label').style.borderColor = 'var(--line)';
-                    r.closest('label').style.background = 'var(--bg)';
+                    r.closest('label').style.background  = 'var(--bg)';
                 });
                 this.closest('label').style.borderColor = 'var(--accent)';
-                this.closest('label').style.background = 'var(--surface)';
+                this.closest('label').style.background  = 'var(--surface)';
             });
         });
     </script>
@@ -424,19 +451,10 @@
     <script>
         document.getElementById('checkoutForm').addEventListener('submit', function() {
             const desktopBtn = this.querySelector('button[type="submit"]');
-            const mobileBtn = document.querySelector('button[form="checkoutForm"]');
-
-            const loadingHtml =
-                `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Placing Order…`;
-
-            if (desktopBtn) {
-                desktopBtn.disabled = true;
-                desktopBtn.innerHTML = loadingHtml;
-            }
-            if (mobileBtn) {
-                mobileBtn.disabled = true;
-                mobileBtn.innerHTML = loadingHtml;
-            }
+            const mobileBtn  = document.querySelector('button[form="checkoutForm"]');
+            const loadingHtml = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Placing Order…`;
+            if (desktopBtn) { desktopBtn.disabled = true; desktopBtn.innerHTML = loadingHtml; }
+            if (mobileBtn)  { mobileBtn.disabled  = true; mobileBtn.innerHTML  = loadingHtml; }
         });
     </script>
 

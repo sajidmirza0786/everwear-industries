@@ -77,6 +77,10 @@ Route::namespace('App\Http\Controllers\Admin')->middleware(['auth', 'admin'])->p
             Route::delete('/{attribute}', 'destroy')->name('destroy');
         });
 
+        Route::controller(OrderController::class)->prefix('orders')->name('orders.')->group(function(){
+            Route::get('{order}/pdf', 'pdf')->name('pdf');
+        });
+
         Route::resource('categories', CategoryController::class);
         Route::resource('products', ProductsController::class);
         Route::resource('users', UserController::class);

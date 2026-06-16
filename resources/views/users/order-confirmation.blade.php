@@ -20,18 +20,14 @@
             <div style="max-width: 680px; margin: 0 auto;">
 
                 {{-- ── Success Banner ── --}}
-                <div
-                    style="display:flex;align-items:center;gap:16px;padding:22px 24px;background:var(--surface);border:1px solid var(--line);margin-bottom:24px;">
-                    <div
-                        style="width:42px;height:42px;flex-shrink:0;background:var(--ink);display:flex;align-items:center;justify-content:center;">
+                <div style="display:flex;align-items:center;gap:16px;padding:22px 24px;background:var(--surface);border:1px solid var(--line);margin-bottom:24px;">
+                    <div style="width:42px;height:42px;flex-shrink:0;background:var(--ink);display:flex;align-items:center;justify-content:center;">
                         <i class="bi bi-check-lg" style="color:#fff;font-size:18px;"></i>
                     </div>
                     <div>
-                        <div
-                            style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--soft-2);margin-bottom:3px;">
+                        <div style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--soft-2);margin-bottom:3px;">
                             Order Confirmed</div>
-                        <div
-                            style="font-family:var(--font-display);font-size:clamp(1.1rem,2.5vw,1.4rem);font-weight:500;color:var(--ink);line-height:1.2;">
+                        <div style="font-family:var(--font-display);font-size:clamp(1.1rem,2.5vw,1.4rem);font-weight:500;color:var(--ink);line-height:1.2;">
                             Thank you, {{ Str::before($order->name, ' ') }}!
                         </div>
                         <div style="font-size:12px;color:var(--soft);margin-top:3px;">
@@ -43,8 +39,6 @@
 
                 {{-- ── Two column grid ── --}}
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-
-                    {{-- Order ID + Status --}}
                     <div class="oc-meta-card">
                         <div class="oc-meta-label">Order ID</div>
                         <div class="oc-meta-value">#{{ $order->uuid }}</div>
@@ -57,16 +51,12 @@
                     </div>
                     <div class="oc-meta-card">
                         <div class="oc-meta-label">Payment</div>
-                        <div class="oc-meta-value" style="text-transform:capitalize;">
-                            {{-- {{ $order->payment_method === 'cod' ? 'Cash on Delivery' : 'Prepaid' }} --}}
-                            Pending
-                        </div>
+                        <div class="oc-meta-value" style="text-transform:capitalize;">Pending</div>
                     </div>
                     <div class="oc-meta-card">
                         <div class="oc-meta-label">Date</div>
                         <div class="oc-meta-value">{{ $order->created_at->format('d M Y') }}</div>
                     </div>
-
                 </div>
 
                 {{-- ── Order Items ── --}}
@@ -77,8 +67,13 @@
                     <div>
                         @foreach ($order->items as $item)
                             @php
-                                $atr = $item->productAttribute ?? null;
+                                $atr          = $item->productAttribute ?? null;
                                 $variantLabel = $atr ? $atr->size : null;
+                                $gstRate      = (float) ($item->product?->gst ?? 0);
+                                $exGstUnit    = $gstRate > 0
+                                    ? round($item->price / (1 + $gstRate / 100), 2)
+                                    : $item->price;
+                                $gstUnit      = round($item->price - $exGstUnit, 2);
                             @endphp
                             <div class="oc-item-row {{ !$loop->last ? 'oc-item-border' : '' }}">
                                 {{-- Thumb --}}
@@ -88,8 +83,7 @@
                                             style="width:100%;height:100%;object-fit:cover;"
                                             alt="{{ $item->product->name }}">
                                     @else
-                                        <div
-                                            style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+                                        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
                                             <i class="bi bi-image" style="color:var(--soft-2);font-size:16px;"></i>
                                         </div>
                                     @endif
@@ -97,8 +91,7 @@
 
                                 {{-- Info --}}
                                 <div style="flex:1;min-width:0;">
-                                    <div
-                                        style="font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                    <div style="font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                                         {{ $item->product->name ?? '—' }}
                                     </div>
                                     <div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap;">
@@ -106,14 +99,18 @@
                                             <span class="oc-variant-badge">{{ $variantLabel }}</span>
                                         @endif
                                         <span style="font-size:11px;color:var(--soft-2);">Qty: {{ $item->quantity }}</span>
-                                        <span
-                                            style="font-size:11px;color:var(--soft-2);">₹{{ number_format($item->price, 2) }} (inc GST)/unit</span>
+                                        <span style="font-size:11px;color:var(--soft-2);">
+                                            ₹{{ number_format($exGstUnit, 2) }}
+                                            @if ($gstRate > 0)
+                                                + ₹{{ number_format($gstUnit, 2) }} GST ({{ $gstRate }}%)
+                                            @endif
+                                            /unit
+                                        </span>
                                     </div>
                                 </div>
 
-                                {{-- Line total --}}
-                                <div
-                                    style="font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;flex-shrink:0;">
+                                {{-- Line total (GST-inclusive) --}}
+                                <div style="font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;flex-shrink:0;">
                                     ₹{{ number_format($item->quantity * $item->price, 2) }}
                                 </div>
                             </div>
@@ -122,6 +119,18 @@
                 </div>
 
                 {{-- ── Billing + Address side by side ── --}}
+                @php
+                    // Compute GST breakdown from order items
+                    $orderTotalExGst = 0;
+                    $orderTotalGst   = 0;
+                    foreach ($order->items as $item) {
+                        $rate         = (float) ($item->product?->gst ?? 0);
+                        $exGstUnit    = $rate > 0 ? round($item->price / (1 + $rate / 100), 2) : $item->price;
+                        $orderTotalExGst += round($exGstUnit * $item->quantity, 2);
+                        $orderTotalGst   += round(($item->price - $exGstUnit) * $item->quantity, 2);
+                    }
+                @endphp
+
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
 
                     {{-- Bill --}}
@@ -130,17 +139,28 @@
                             <i class="bi bi-receipt" style="font-size:11px;"></i> Bill
                         </div>
                         <div class="oc-bill-row">
-                            <span>Subtotal</span>
-                            <span>₹{{ number_format($order->total, 2) }}</span>
+                            <span>Subtotal <span style="font-size:10px;">(excl. GST)</span></span>
+                            <span>₹{{ number_format($orderTotalExGst, 2) }}</span>
                         </div>
+                        @if ($orderTotalGst > 0)
+                            <div class="oc-bill-row">
+                                <span>GST</span>
+                                <span>₹{{ number_format($orderTotalGst, 2) }}</span>
+                            </div>
+                        @endif
                         <div class="oc-bill-row">
                             <span>Shipping</span>
                             <span>₹{{ number_format($order->shipping_charge, 2) }}</span>
                         </div>
                         <div class="oc-bill-row oc-bill-total">
-                            <span>Total</span>
+                            <span>Total <span style="font-size:10px;font-weight:400;color:var(--soft);">(incl. GST)</span></span>
                             <span>₹{{ number_format($order->total + $order->shipping_charge, 2) }}</span>
                         </div>
+                        @if ($orderTotalGst > 0)
+                            <div style="padding:4px 16px 10px;font-size:11px;color:var(--soft-2);text-align:right;">
+                                ₹{{ number_format($orderTotalGst, 2) }} GST included in total
+                            </div>
+                        @endif
                     </div>
 
                     {{-- Address --}}
@@ -148,15 +168,17 @@
                         <div class="oc-section-head">
                             <i class="bi bi-geo-alt" style="font-size:11px;"></i> Delivery To
                         </div>
-                        <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:4px;">
-                            {{ $order->name }}
-                        </div>
-                        <div style="font-size:12px;color:var(--soft);line-height:1.8;">
-                            {{ $order->address }}, {{ $order->locality }}<br>
-                            {{ $order->city }}, {{ $order->state }} – {{ $order->zipcode }}
-                        </div>
-                        <div style="font-size:12px;color:var(--soft);margin-top:6px;">
-                            <i class="bi bi-phone me-1" style="font-size:10px;"></i>{{ $order->mobile }}
+                        <div style="padding:12px 16px;">
+                            <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:4px;">
+                                {{ $order->name }}
+                            </div>
+                            <div style="font-size:12px;color:var(--soft);line-height:1.8;">
+                                {{ $order->address }}, {{ $order->locality }}<br>
+                                {{ $order->city }}, {{ $order->state }} – {{ $order->zipcode }}
+                            </div>
+                            <div style="font-size:12px;color:var(--soft);margin-top:6px;">
+                                <i class="bi bi-phone me-1" style="font-size:10px;"></i>{{ $order->mobile }}
+                            </div>
                         </div>
                     </div>
 
@@ -192,13 +214,11 @@
     </section>
 
     <style>
-        /* Meta cards */
         .oc-meta-card {
             background: var(--surface);
             border: 1px solid var(--line);
             padding: 12px 16px;
         }
-
         .oc-meta-label {
             font-size: 10px;
             letter-spacing: .16em;
@@ -206,7 +226,6 @@
             color: var(--soft-2);
             margin-bottom: 4px;
         }
-
         .oc-meta-value {
             font-size: 13px;
             font-weight: 500;
@@ -215,7 +234,6 @@
             align-items: center;
             gap: 6px;
         }
-
         .oc-status-dot {
             width: 7px;
             height: 7px;
@@ -224,13 +242,10 @@
             display: inline-block;
             flex-shrink: 0;
         }
-
-        /* Sections */
         .oc-section {
             background: var(--surface);
             border: 1px solid var(--line);
         }
-
         .oc-section-head {
             font-size: 10px;
             letter-spacing: .16em;
@@ -243,20 +258,15 @@
             align-items: center;
             gap: 6px;
         }
-
-        /* Item rows */
         .oc-item-row {
             display: flex;
             align-items: center;
             gap: 12px;
             padding: 12px 16px;
         }
-
         .oc-item-border {
             border-bottom: 1px solid var(--line);
         }
-
-        /* Variant badge */
         .oc-variant-badge {
             font-size: 10px;
             font-weight: 600;
@@ -269,8 +279,6 @@
             border-radius: 2px;
             white-space: nowrap;
         }
-
-        /* Bill rows */
         .oc-bill-row {
             display: flex;
             justify-content: space-between;
@@ -280,11 +288,9 @@
             color: var(--soft);
             border-bottom: 1px solid var(--line);
         }
-
         .oc-bill-row:last-child {
             border-bottom: none;
         }
-
         .oc-bill-total {
             font-size: 14px;
             font-weight: 600;
@@ -292,8 +298,6 @@
             padding-top: 10px;
             padding-bottom: 10px;
         }
-
-        /* Responsive */
         @media (max-width: 575.98px) {
             .oc-section-grid {
                 grid-template-columns: 1fr !important;

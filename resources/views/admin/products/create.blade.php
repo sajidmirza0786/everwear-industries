@@ -79,10 +79,24 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label for="selling" class="form-label">Selling Price <span class="text-danger">*</span></label>
                                 <input type="number" step="0.01" class="form-control @error('selling') is-invalid @enderror" id="selling" name="selling" value="{{ old('selling', $product->selling ?? '') }}" placeholder="e.g., 899.50" required>
                                 @error('selling')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-4">
+                                <label for="gst" class="form-label">GST% (on Selling Price)  <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" class="form-control @error('gst') is-invalid @enderror" id="gst" name="gst" value="{{ old('gst', $product->gst ?? '') }}" placeholder="e.g., 18" required>
+                                @error('gst')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-4">
+                                <label for="stock" class="form-label">Product Stock Qty <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control @error('stock') is-invalid @enderror" id="stock" name="stock" value="{{ old('stock', $product->stock ?? '') }}" placeholder="e.g., 0,12,155" required>
+                                @error('stock')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -90,13 +104,6 @@
                                 <label for="gram_weight" class="form-label">Product Weight-Gram  (Optional) </label>
                                 <input type="text" class="form-control @error('gram_weight') is-invalid @enderror" id="gram_weight" name="gram_weight" value="{{ old('gram_weight', $product->gram_weight ?? '') }}" placeholder="e.g., 0,12,155">
                                 @error('gram_weight')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="col-md-6">
-                                <label for="stock" class="form-label">Product Stock Qty <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('stock') is-invalid @enderror" id="stock" name="stock" value="{{ old('stock', $product->stock ?? '') }}" placeholder="e.g., 0,12,155" required>
-                                @error('stock')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>

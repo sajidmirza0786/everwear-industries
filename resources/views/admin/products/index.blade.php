@@ -83,9 +83,10 @@
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Category</th>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Code</th>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">MRP</th>
+                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">GST%</th>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Selling</th>
+                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">ExcGst</th>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Stock</th>
-                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">WT(GM)</th>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Status</th>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">CreatedAt</th>
                             <th class="text-secondary opacity-7">Actions</th>
@@ -119,13 +120,16 @@
                                     <p class="text-xs font-weight-bold mb-0">₹{{ number_format($product->mrp, 2) }}</p>
                                 </td>
                                 <td>
+                                    <p class="text-xs font-weight-bold mb-0">{{ number_format($product->gst) }}%</p>
+                                </td>
+                                <td>
                                     <p class="text-xs font-weight-bold mb-0">₹{{ number_format($product->selling, 2) }}</p>
                                 </td>
                                 <td>
-                                    <p class="text-xs font-weight-bold mb-0">{{ $product->stock }}</p>
+                                    <p class="text-xs font-weight-bold mb-0">₹{{ number_format($product->ex_gst_selling, 2) }}</p>
                                 </td>
                                 <td>
-                                    <p class="text-xs font-weight-bold mb-0">{{ $product->gram_weight }}</p>
+                                    <p class="text-xs font-weight-bold mb-0">{{ $product->stock }}</p>
                                 </td>
                                 <td>
                                     <span class="badge badge-sm {{ $product->status == 'enable' ? 'bg-success' : 'bg-danger' }}">

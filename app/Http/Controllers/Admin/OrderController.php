@@ -6,7 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use Illuminate\Support\Facades\DB; // Import DB facade
-use Illuminate\Validation\ValidationException; // Import ValidationException
+use Illuminate\Validation\ValidationException; 
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class OrderController extends Controller
 {
@@ -114,5 +115,30 @@ class OrderController extends Controller
                              ->withInput()
                              ->with('error', 'Failed to update order. Please try again. ' . $e->getMessage()); // Display general error
         }
+    }
+
+    /**
+     * Download the invoice PDF for an order.
+     *
+     * Route:  GET /admin/orders/{order}/pdf
+     * Name:   admin.orders.pdf
+     */
+    public function pdf(Order $order): \Illuminate\Http\Response
+    {
+        // Eager-load everything the PDF view needs
+        $order->load([
+            'items.product',
+            'items.productAttribute',
+        ]);
+    
+        $pdf = Pdf::loadView('pdfs.order', ['order' => $order])
+            ->setPaper('a4', 'portrait');
+    
+        $filename = 'invoice-' . str_pad($order->id, 5, '0', STR_PAD_LEFT) . '.pdf';
+    
+        return $pdf->download($filename);
+    
+        // ── Or stream in the browser instead of forcing a download: ──
+        // return $pdf->stream($filename);
     }
 }

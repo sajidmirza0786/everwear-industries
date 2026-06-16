@@ -13,13 +13,29 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Mail\OrderInvoiceMail;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
 
 class CheckoutController extends Controller
 {
+    // ── Shared GST helper ──────────────────────────────────────────────────────
+    // Given a GST-inclusive unit price and a GST rate %, returns:
+    //   [ exGstUnit, gstUnit ]
+    // Formula: ex_gst = price / (1 + rate/100)
+    private function splitGst(float $price, float $rate): array
+    {
+        if ($rate <= 0) {
+            return [$price, 0.0];
+        }
+        $exGst = round($price / (1 + $rate / 100), 2);
+        return [$exGst, round($price - $exGst, 2)];
+    }
+
     public function index()
     {
         $cartItems     = [];
-        $total         = 0;
+        $total         = 0;   // GST-inclusive subtotal (sum of price × qty)
+        $totalExGst    = 0;   // subtotal before GST
+        $totalGst      = 0;   // GST portion
         $totalShipping = 0;
 
         if (Auth::check()) {
@@ -27,13 +43,42 @@ class CheckoutController extends Controller
                 ->with(['product', 'productAttribute'])
                 ->get();
 
-            $total         = $cartItems->sum(fn($i) => $i->quantity * $i->price);
-            $totalShipping = $cartItems->sum('shipping_charge');
+            foreach ($cartItems as $item) {
+                $product      = $item->product;
+                $qty          = $item->quantity;
+                $sellingPrice = $item->price;
+                $gstRate      = (float) ($product->gst ?? 0);
+
+                [$exGstUnit, $gstUnit] = $this->splitGst($sellingPrice, $gstRate);
+
+                $item->subtotal_ex_gst = round($exGstUnit * $qty, 2);
+                $item->gst_amount      = round($gstUnit   * $qty, 2);
+                $item->gst_rate        = $gstRate;
+
+                $total         += $sellingPrice * $qty;
+                $totalExGst    += $item->subtotal_ex_gst;
+                $totalGst      += $item->gst_amount;
+                $totalShipping += $item->shipping_charge;
+            }
         } else {
             $cart = session()->get('cart', []);
             foreach ($cart as $item) {
-                $cartItems[]    = (object) $item;
-                $total         += $item['quantity'] * $item['price'];
+                $obj          = (object) $item;
+                $product      = \App\Models\Product::find($item['product_id']);
+                $qty          = $item['quantity'];
+                $sellingPrice = $item['price'];
+                $gstRate      = (float) ($product?->gst ?? 0);
+
+                [$exGstUnit, $gstUnit] = $this->splitGst($sellingPrice, $gstRate);
+
+                $obj->subtotal_ex_gst = round($exGstUnit * $qty, 2);
+                $obj->gst_amount      = round($gstUnit   * $qty, 2);
+                $obj->gst_rate        = $gstRate;
+
+                $cartItems[]    = $obj;
+                $total         += $sellingPrice * $qty;
+                $totalExGst    += $obj->subtotal_ex_gst;
+                $totalGst      += $obj->gst_amount;
                 $totalShipping += $item['shipping_charge'];
             }
         }
@@ -42,15 +87,23 @@ class CheckoutController extends Controller
             return redirect()->route('cart.view')->with('error', 'Your cart is empty.');
         }
 
-        return view('users.checkout', compact('cartItems', 'total', 'totalShipping'));
+        return view('users.checkout', compact(
+            'cartItems', 'total', 'totalShipping', 'totalExGst', 'totalGst'
+        ));
     }
 
     public function store(Request $request)
     {
+        $lookupEmail = $request->email ?? Auth::user()?->email;
+        $existingUser = User::where('email', $lookupEmail)->first();
+
         $request->validate([
             'name'           => 'required|string|max:255',
             'email'          => Auth::check() ? 'nullable|email|max:255' : 'required|email|max:255',
-            'mobile'         => 'required|string|max:15',
+            'mobile'         => [
+                'required', 'string', 'max:15',
+                Rule::unique('users', 'mobile')->ignore($existingUser?->id),
+            ],
             'state'          => 'required|exists:states,name',
             'zipcode'        => ['required', 'regex:/^[1-9][0-9]{5}$/'],
             'city'           => ['required', 'string', 'regex:/^[a-zA-Z\s]+$/', 'max:50'],
@@ -113,6 +166,16 @@ class CheckoutController extends Controller
                 'zipcode'  => $request->zipcode,
             ];
 
+            $mobileConflict = User::where('mobile', $request->mobile)
+                ->where('email', '!=', $email)
+                ->exists();
+
+            if ($mobileConflict) {
+                return back()->withInput()->withErrors([
+                    'mobile' => 'This mobile number is linked to another account.'
+                ]);
+            }
+
             if (!Auth::check()) {
                 $user = User::updateOrCreate(['email' => $email], array_merge($userData, [
                     'password'       => bcrypt($request->mobile),
@@ -135,8 +198,8 @@ class CheckoutController extends Controller
                 $product = Product::find($item->product_id);
                 if (!$product) continue;
 
-                $atrId          = $item->product_attribute_id ?? null;
-                $sellingPrice   = $atrId
+                $atrId        = $item->product_attribute_id ?? null;
+                $sellingPrice = $atrId
                     ? (ProductAttribute::find($atrId)?->selling_price ?? $product->selling)
                     : $product->selling;
 
@@ -199,13 +262,9 @@ class CheckoutController extends Controller
                 ]);
 
                 // if ($atrId) {
-                //     // Decrement variant stock
-                //     ProductAttribute::where('id', $atrId)
-                //         ->decrement('stock', $item->quantity);
+                //     ProductAttribute::where('id', $atrId)->decrement('stock', $item->quantity);
                 // } else {
-                //     // Decrement base product stock
-                //     Product::where('id', $item->product_id)
-                //         ->decrement('stock', $item->quantity);
+                //     Product::where('id', $item->product_id)->decrement('stock', $item->quantity);
                 // }
             }
 
@@ -217,7 +276,7 @@ class CheckoutController extends Controller
             DB::commit();
 
             $emails = [
-                $order->email, 
+                $order->email,
                 'order@everwearindustries.com'
             ];
 
@@ -225,7 +284,6 @@ class CheckoutController extends Controller
             try {
                 Mail::to($emails)->send(new OrderInvoiceMail($order->load('items.product')));
             } catch (\Throwable $e) {
-                // Don't fail the order if mail fails
                 \Log::error('Order invoice mail failed: ' . $e->getMessage());
             }
 
@@ -234,7 +292,7 @@ class CheckoutController extends Controller
 
         } catch (\Throwable $e) {
             DB::rollBack();
-            return back()->with('error', 'Checkout processing failed. Please try again.'. $e->getMessage());
+            return back()->with('error', 'Checkout processing failed. Please try again.' . $e->getMessage());
         }
     }
 

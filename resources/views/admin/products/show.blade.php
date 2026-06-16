@@ -211,6 +211,122 @@
                     </div>
                 </div>
             </div>
+        </div>{{-- /col-left --}}
+
+
+        {{-- ════════════════════════════
+             RIGHT  · Product Info
+        ════════════════════════════ --}}
+        <div class="col-xl-7 col-lg-7">
+            <div class="pcard">
+                <div class="pcard-header">
+                    <h2 class="pcard-title">
+                        <span class="icon-wrap" style="background:#fffaeb;color:#f79009;"><i class="bi bi-box-seam"></i></span>
+                        Product Information
+                    </h2>
+                    <span class="bdg {{ $product->status==='enable' ? 'bdg-success' : 'bdg-danger' }}">
+                        <i class="bi bi-circle-fill" style="font-size:.4rem;"></i>
+                        {{ $product->status==='enable' ? 'Active' : 'Inactive' }}
+                    </span>
+                </div>
+                <div class="pcard-body">
+
+                    {{-- Price block --}}
+                    <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+                        <div>
+                            <div class="price-mrp">MRP ₹{{ number_format($product->mrp,2) }}</div>
+                            <div class="price-selling">₹{{ number_format($product->selling,2) }}</div>
+                        </div>
+                        @php
+                            $gDisc = $product->mrp > 0 ? round((($product->mrp - $product->selling)/$product->mrp)*100) : 0;
+                        @endphp
+                        @if($gDisc > 0)
+                        <span class="bdg bdg-success" style="font-size:.8rem;padding:4px 12px;">{{ $gDisc }}% off</span>
+                        @endif
+                    </div>
+
+                    {{-- Info grid --}}
+                    <div class="info-grid">
+                        <div class="info-item" style="padding-right:18px;">
+                            <span class="info-label">Category</span>
+                            <span class="info-value">{{ $product->category->name ?? '—' }}</span>
+                        </div>
+                        <div class="info-item" style="padding-left:18px;">
+                            <span class="info-label">Product Code</span>
+                            <span class="info-value"><code>{{ $product->code }}</code></span>
+                        </div>
+                        <div class="info-item" style="padding-right:18px;">
+                            <span class="info-label">Slug</span>
+                            <span class="info-value"><code style="word-break:break-all;">{{ $product->slug }}</code></span>
+                        </div>
+                        <div class="info-item" style="padding-left:18px;">
+                            <span class="info-label">Stock</span>
+                            <span class="info-value">{{ $product->stock ?? '—' }}</span>
+                        </div>
+                        <div class="info-item" style="padding-right:18px;">
+                            <span class="info-label">GST</span>
+                            <span class="info-value"><code style="word-break:break-all;">{{ number_format($product->gst) }}%</code></span>
+                        </div>
+                        <div class="info-item" style="padding-left:18px;">
+                            <span class="info-label">Exc GST Amount</span>
+                            <span class="info-value">₹{{ number_format($product->ex_gst_selling, 2) }}</span>
+                        </div>
+                        <div class="info-item" style="padding-right:18px;">
+                            <span class="info-label">Weight</span>
+                            <span class="info-value">{{ $product->gram_weight ? $product->gram_weight.' g' : '—' }}</span>
+                        </div>
+                        @if($product->size)
+                        <div class="info-item" style="padding-left:18px;">
+                            <span class="info-label">Base Size</span>
+                            <span class="info-value"><span class="bdg bdg-accent">{{ $product->size }}</span></span>
+                        </div>
+                        @endif
+                        @if($product->color)
+                        <div class="info-item" style="padding-right:18px;">
+                            <span class="info-label">Color</span>
+                            <span class="info-value d-flex align-items-center gap-2">
+                                <span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:{{ $product->color }};border:1px solid var(--border);flex-shrink:0;"></span>
+                                {{ $product->color }}
+                            </span>
+                        </div>
+                        @endif
+                        @if($product->keyword)
+                        <div class="info-item" style="padding-left:18px;">
+                            <span class="info-label">Keywords</span>
+                            <span class="info-value" style="font-size:.76rem;color:var(--text-muted);">{{ $product->keyword }}</span>
+                        </div>
+                        @endif
+                    </div>
+
+                    @if($product->title)
+                    <div class="divider"></div>
+                    <span class="info-label" style="display:block;margin-bottom:6px;">Title</span>
+                    <p style="font-size:.838rem;color:var(--text-muted);margin:0;line-height:1.6;">{{ $product->title }}</p>
+                    @endif
+
+                    @if($product->description)
+                    <div class="divider"></div>
+                    <span class="info-label" style="display:block;margin-bottom:6px;">Short Description</span>
+                    <p style="font-size:.813rem;color:var(--text-muted);margin:0;line-height:1.75;">{{ $product->description }}</p>
+                    @endif
+
+                    @if($product->long_description)
+                    <div class="divider"></div>
+                    <span class="info-label" style="display:block;margin-bottom:8px;">Detailed Description</span>
+                    <div class="desc-box">{!! nl2br(e($product->long_description)) !!}</div>
+                    @endif
+
+                    <div class="divider"></div>
+                    <div class="d-flex gap-4" style="font-size:.73rem;color:var(--text-light);">
+                        <span><i class="bi bi-calendar3 me-1"></i>Created {{ $product->created_at->format('d M Y') }}</span>
+                        <span><i class="bi bi-clock-history me-1"></i>Updated {{ $product->updated_at->format('d M Y, h:i A') }}</span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-12 col-lg-12">
 
             {{-- ── Size Variants ── --}}
             <div class="pcard">
@@ -227,31 +343,31 @@
                     <form action="{{ route('admin.products.attributes.store',$product) }}" method="POST">
                         @csrf
                         <div class="row g-2">
-                            <div class="col-6 col-sm-4">
+                            <div class="col-6 col-sm-2">
                                 <div class="f-field">
                                     <label class="f-label">Size <span>*</span></label>
                                     <input type="text" name="attributes[0][size]" class="f-ctrl" placeholder="S / XL / 1kg" required>
                                 </div>
                             </div>
-                            <div class="col-6 col-sm-4">
+                            <div class="col-6 col-sm-2">
                                 <div class="f-field">
                                     <label class="f-label">MRP (₹) <span>*</span></label>
                                     <input type="number" name="attributes[0][mrp]" class="f-ctrl" placeholder="0.00" step="0.01" min="0" required>
                                 </div>
                             </div>
-                            <div class="col-6 col-sm-4">
+                            <div class="col-6 col-sm-2">
                                 <div class="f-field">
                                     <label class="f-label">Price (₹) <span>*</span></label>
                                     <input type="number" name="attributes[0][selling_price]" class="f-ctrl" placeholder="0.00" step="0.01" min="0" required>
                                 </div>
                             </div>
-                            <div class="col-6 col-sm-4">
+                            <div class="col-6 col-sm-2">
                                 <div class="f-field">
                                     <label class="f-label">Stock <span>*</span></label>
                                     <input type="number" name="attributes[0][stock]" class="f-ctrl" placeholder="0" min="0" required>
                                 </div>
                             </div>
-                            <div class="col-6 col-sm-4">
+                            <div class="col-6 col-sm-2">
                                 <div class="f-field">
                                     <label class="f-label">Status</label>
                                     <select name="attributes[0][status]" class="f-ctrl">
@@ -260,7 +376,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-6 col-sm-4 d-flex align-items-end">
+                            <div class="col-6 col-sm-2 d-flex align-items-end">
                                 <button type="submit" class="btn-p" style="width:100%;justify-content:center;">
                                     <i class="bi bi-plus-lg"></i> Add Size
                                 </button>
@@ -374,111 +490,6 @@
                 @endif
 
             </div>{{-- /Size Variants card --}}
-        </div>{{-- /col-left --}}
-
-
-        {{-- ════════════════════════════
-             RIGHT  · Product Info
-        ════════════════════════════ --}}
-        <div class="col-xl-7 col-lg-7">
-            <div class="pcard">
-                <div class="pcard-header">
-                    <h2 class="pcard-title">
-                        <span class="icon-wrap" style="background:#fffaeb;color:#f79009;"><i class="bi bi-box-seam"></i></span>
-                        Product Information
-                    </h2>
-                    <span class="bdg {{ $product->status==='enable' ? 'bdg-success' : 'bdg-danger' }}">
-                        <i class="bi bi-circle-fill" style="font-size:.4rem;"></i>
-                        {{ $product->status==='enable' ? 'Active' : 'Inactive' }}
-                    </span>
-                </div>
-                <div class="pcard-body">
-
-                    {{-- Price block --}}
-                    <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
-                        <div>
-                            <div class="price-mrp">MRP ₹{{ number_format($product->mrp,2) }}</div>
-                            <div class="price-selling">₹{{ number_format($product->selling,2) }}</div>
-                        </div>
-                        @php
-                            $gDisc = $product->mrp > 0 ? round((($product->mrp - $product->selling)/$product->mrp)*100) : 0;
-                        @endphp
-                        @if($gDisc > 0)
-                        <span class="bdg bdg-success" style="font-size:.8rem;padding:4px 12px;">{{ $gDisc }}% off</span>
-                        @endif
-                    </div>
-
-                    {{-- Info grid --}}
-                    <div class="info-grid">
-                        <div class="info-item" style="padding-right:18px;">
-                            <span class="info-label">Category</span>
-                            <span class="info-value">{{ $product->category->name ?? '—' }}</span>
-                        </div>
-                        <div class="info-item" style="padding-left:18px;">
-                            <span class="info-label">Product Code</span>
-                            <span class="info-value"><code>{{ $product->code }}</code></span>
-                        </div>
-                        <div class="info-item" style="padding-right:18px;">
-                            <span class="info-label">Slug</span>
-                            <span class="info-value"><code style="word-break:break-all;">{{ $product->slug }}</code></span>
-                        </div>
-                        <div class="info-item" style="padding-left:18px;">
-                            <span class="info-label">Stock</span>
-                            <span class="info-value">{{ $product->stock ?? '—' }}</span>
-                        </div>
-                        <div class="info-item" style="padding-right:18px;">
-                            <span class="info-label">Weight</span>
-                            <span class="info-value">{{ $product->gram_weight ? $product->gram_weight.' g' : '—' }}</span>
-                        </div>
-                        @if($product->size)
-                        <div class="info-item" style="padding-left:18px;">
-                            <span class="info-label">Base Size</span>
-                            <span class="info-value"><span class="bdg bdg-accent">{{ $product->size }}</span></span>
-                        </div>
-                        @endif
-                        @if($product->color)
-                        <div class="info-item" style="padding-right:18px;">
-                            <span class="info-label">Color</span>
-                            <span class="info-value d-flex align-items-center gap-2">
-                                <span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:{{ $product->color }};border:1px solid var(--border);flex-shrink:0;"></span>
-                                {{ $product->color }}
-                            </span>
-                        </div>
-                        @endif
-                        @if($product->keyword)
-                        <div class="info-item" style="padding-left:18px;">
-                            <span class="info-label">Keywords</span>
-                            <span class="info-value" style="font-size:.76rem;color:var(--text-muted);">{{ $product->keyword }}</span>
-                        </div>
-                        @endif
-                    </div>
-
-                    @if($product->title)
-                    <div class="divider"></div>
-                    <span class="info-label" style="display:block;margin-bottom:6px;">Title</span>
-                    <p style="font-size:.838rem;color:var(--text-muted);margin:0;line-height:1.6;">{{ $product->title }}</p>
-                    @endif
-
-                    @if($product->description)
-                    <div class="divider"></div>
-                    <span class="info-label" style="display:block;margin-bottom:6px;">Short Description</span>
-                    <p style="font-size:.813rem;color:var(--text-muted);margin:0;line-height:1.75;">{{ $product->description }}</p>
-                    @endif
-
-                    @if($product->long_description)
-                    <div class="divider"></div>
-                    <span class="info-label" style="display:block;margin-bottom:8px;">Detailed Description</span>
-                    <div class="desc-box">{!! nl2br(e($product->long_description)) !!}</div>
-                    @endif
-
-                    <div class="divider"></div>
-                    <div class="d-flex gap-4" style="font-size:.73rem;color:var(--text-light);">
-                        <span><i class="bi bi-calendar3 me-1"></i>Created {{ $product->created_at->format('d M Y') }}</span>
-                        <span><i class="bi bi-clock-history me-1"></i>Updated {{ $product->updated_at->format('d M Y, h:i A') }}</span>
-                    </div>
-
-                </div>
-            </div>
         </div>
 
     </div>{{-- /row --}}

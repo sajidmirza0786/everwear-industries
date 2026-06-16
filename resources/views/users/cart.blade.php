@@ -106,8 +106,9 @@
                             <thead style="border-bottom: 1px solid var(--line-strong);">
                                 <tr style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--soft);">
                                     <th class="fw-normal py-3 ps-0" style="width: 45%;">Product</th>
-                                    <th class="fw-normal py-3 text-end">Price</th>
+                                    <th class="fw-normal py-3 text-end">Price (excl. GST)</th>
                                     <th class="fw-normal py-3 text-center">Qty</th>
+                                    <th class="fw-normal py-3 text-end">GST</th>
                                     <th class="fw-normal py-3 text-end">Shipping</th>
                                     <th class="fw-normal py-3 text-end pe-0"></th>
                                 </tr>
@@ -115,7 +116,6 @@
                             <tbody>
                                 @foreach ($cartItems as $item)
                                     @php
-                                        // Support both DB model (Auth) and session object (guest)
                                         $product   = isset($item->product)
                                             ? $item->product
                                             : \App\Models\Product::find($item->product_id);
@@ -125,9 +125,12 @@
                                             ? \App\Models\ProductAttribute::find($atrId)
                                             : null;
 
-                                        // Variant label: size + optional description
                                         $variantLabel = $atr ? $atr->size : null;
-                                        $subtotal  = $item->quantity * $item->price;
+
+                                        // GST-aware pricing (pre-computed in controller)
+                                        $subtotalExGst = $item->subtotal_ex_gst ?? ($item->quantity * $item->price);
+                                        $gstAmount     = $item->gst_amount ?? 0;
+                                        $gstRate       = $item->gst_rate ?? 0;
                                     @endphp
 
                                     @if (!$product) @continue @endif
@@ -148,7 +151,6 @@
                                                     <a href="{{ route('listing', $product) }}"
                                                         class="product-title d-block mb-1">{{ $product->name }}</a>
 
-                                                    {{-- Variant badge --}}
                                                     @if ($variantLabel)
                                                         <span class="cart-variant-badge">
                                                             <i class="bi bi-tag" style="font-size:9px;"></i>
@@ -160,17 +162,28 @@
                                                         SKU #{{ $product->code ?? $product->id }}
                                                     </span>
 
-                                                    {{-- Subtotal on desktop --}}
+                                                    {{-- Subtotal (ex-GST) on desktop --}}
                                                     <span style="font-size:12px;color:var(--soft);margin-top:3px;display:block;">
-                                                        Subtotal: <strong style="color:var(--ink);">₹{{ number_format($subtotal, 2) }}</strong>
+                                                        Subtotal: <strong style="color:var(--ink);">₹{{ number_format($subtotalExGst, 2) }}</strong>
+                                                        @if ($gstRate > 0)
+                                                            <span style="color:var(--soft-2);font-size:11px;">+ ₹{{ number_format($gstAmount, 2) }} GST</span>
+                                                        @endif
                                                     </span>
                                                 </div>
                                             </div>
                                         </td>
 
-                                        {{-- Unit Price --}}
-                                        <td class="text-end" style="font-weight:600;white-space:nowrap;">
-                                            ₹{{ number_format($item->price, 2) }}
+                                        {{-- Unit Price (ex-GST) — derived from actual cart price + GST rate --}}
+                                        <td class="text-end" style="white-space:nowrap;">
+                                            @php
+                                                $exGstUnit = $gstRate > 0
+                                                    ? round($item->price / (1 + $gstRate / 100), 2)
+                                                    : $item->price;
+                                            @endphp
+                                            <span style="font-weight:600;">₹{{ number_format($exGstUnit, 2) }}</span>
+                                            @if ($gstRate > 0)
+                                                <span class="gst-rate-pill">{{ $gstRate }}% GST</span>
+                                            @endif
                                         </td>
 
                                         {{-- Qty stepper --}}
@@ -186,6 +199,15 @@
                                                     <button type="button" onclick="updateQty(this,'up')" aria-label="Increase">+</button>
                                                 </div>
                                             </form>
+                                        </td>
+
+                                        {{-- GST Amount --}}
+                                        <td class="text-end" style="white-space:nowrap;">
+                                            @if ($gstRate > 0)
+                                                <span style="color:var(--soft);">₹{{ number_format($gstAmount, 2) }}</span>
+                                            @else
+                                                <span style="color:var(--soft-2);font-size:11px;">—</span>
+                                            @endif
                                         </td>
 
                                         {{-- Shipping --}}
@@ -224,8 +246,13 @@
                                     ? \App\Models\ProductAttribute::find($atrId)
                                     : null;
 
-                                $variantLabel = $atr ? $atr->size : null;
-                                $subtotal = $item->quantity * $item->price;
+                                $variantLabel  = $atr ? $atr->size : null;
+                                $subtotalExGst = $item->subtotal_ex_gst ?? ($item->quantity * $item->price);
+                                $gstAmount     = $item->gst_amount ?? 0;
+                                $gstRate       = $item->gst_rate ?? 0;
+                                $exGstUnit     = $gstRate > 0
+                                    ? round($item->price / (1 + $gstRate / 100), 2)
+                                    : $item->price;
                             @endphp
 
                             @if (!$product) @continue @endif
@@ -247,7 +274,6 @@
                                                 class="product-title d-block mb-1"
                                                 style="font-size:13px;">{{ $product->name }}</a>
 
-                                            {{-- Variant badge --}}
                                             @if ($variantLabel)
                                                 <span class="cart-variant-badge mb-1">
                                                     <i class="bi bi-tag" style="font-size:9px;"></i>
@@ -255,19 +281,31 @@
                                                 </span>
                                             @endif
 
+                                            {{-- Price row --}}
                                             <div class="d-flex justify-content-between align-items-center mt-1">
-                                                <span style="font-size:14px;font-weight:600;">
-                                                    ₹{{ number_format($item->price, 2) }}
-                                                    <span style="font-size:11px;font-weight:400;color:var(--soft);">/ unit</span>
-                                                </span>
+                                                <div>
+                                                    <span style="font-size:14px;font-weight:600;">
+                                                        ₹{{ number_format($exGstUnit, 2) }}
+                                                        <span style="font-size:11px;font-weight:400;color:var(--soft);">/ unit excl. GST</span>
+                                                    </span>
+                                                    @if ($gstRate > 0)
+                                                        <span class="gst-rate-pill" style="margin-left:4px;">{{ $gstRate }}%</span>
+                                                    @endif
+                                                </div>
                                                 <span style="font-size:12px;color:var(--soft);">
                                                     +₹{{ number_format($item->shipping_charge, 2) }} ship
                                                 </span>
                                             </div>
 
-                                            <div style="font-size:12px;color:var(--soft);margin-top:2px;">
-                                                Subtotal: <strong style="color:var(--ink);">₹{{ number_format($subtotal, 2) }}</strong>
+                                            {{-- Subtotal breakdown --}}
+                                            <div style="font-size:12px;color:var(--soft);margin-top:4px;">
+                                                Subtotal (excl. GST): <strong style="color:var(--ink);">₹{{ number_format($subtotalExGst, 2) }}</strong>
                                             </div>
+                                            @if ($gstRate > 0)
+                                                <div style="font-size:12px;color:var(--soft);margin-top:1px;">
+                                                    GST ({{ $gstRate }}%): <strong style="color:var(--ink);">₹{{ number_format($gstAmount, 2) }}</strong>
+                                                </div>
+                                            @endif
                                         </div>
 
                                         {{-- Qty + Remove --}}
@@ -307,18 +345,44 @@
                     <div class="cart-summary d-none d-lg-block">
                         <h6 class="section-eyebrow mb-4">Order Summary</h6>
 
+                        {{-- Subtotal (ex-GST) --}}
                         <div class="row-line">
-                            <span style="color:var(--soft);font-size:14px;">Subtotal</span>
-                            <span style="font-size:14px;">₹{{ number_format($total, 2) }}</span>
+                            <span style="color:var(--soft);font-size:14px;">Subtotal <span style="font-size:11px;">(excl. GST)</span></span>
+                            <span style="font-size:14px;">₹{{ number_format($totalExGst, 2) }}</span>
                         </div>
+
+                        {{-- GST row — only shown when any product has GST --}}
+                        @if ($totalGst > 0)
+                            <div class="row-line">
+                                <span style="color:var(--soft);font-size:14px;">
+                                    GST
+                                    <i class="bi bi-info-circle" style="font-size:11px;cursor:help;"
+                                       title="Goods & Services Tax included in your order"></i>
+                                </span>
+                                <span style="font-size:14px;">₹{{ number_format($totalGst, 2) }}</span>
+                            </div>
+                        @endif
+
+                        {{-- Shipping --}}
                         <div class="row-line">
                             <span style="color:var(--soft);font-size:14px;">Shipping</span>
                             <span style="font-size:14px;">₹{{ number_format($totalShipping, 2) }}</span>
                         </div>
+
+                        {{-- Divider before total --}}
+                        <div style="border-top:1px solid var(--line-strong);margin:8px 0;"></div>
+
+                        {{-- Grand Total --}}
                         <div class="row-line total">
-                            <span>Total</span>
+                            <span>Total <span style="font-size:11px;font-weight:400;color:var(--soft);">(incl. GST)</span></span>
                             <span>₹{{ number_format($total + $totalShipping, 2) }}</span>
                         </div>
+
+                        @if ($totalGst > 0)
+                            <p style="font-size:11px;color:var(--soft-2);text-align:right;margin-top:4px;letter-spacing:.04em;">
+                                ₹{{ number_format($totalGst, 2) }} GST included in total
+                            </p>
+                        @endif
 
                         <a href="{{ route('checkout') }}" class="btn btn-dark w-100 mt-4"
                             style="letter-spacing:.1em;text-transform:uppercase;font-size:13px;padding:16px;">
@@ -333,18 +397,27 @@
             </div>
         </div>
 
-        <div class="d-lg-none" style="height:130px;" aria-hidden="true"></div>
+        <div class="d-lg-none" style="height:150px;" aria-hidden="true"></div>
 
         {{-- MOBILE STICKY FOOTER --}}
         <div class="d-lg-none px-3"
             style="position:fixed;bottom:0;left:0;right:0;z-index:91;background:var(--bg);border-top:1px solid var(--line-strong);box-shadow:0 -2px 16px rgba(26,20,16,.09);">
             <div class="d-flex align-items-center justify-content-between gap-3" style="padding:10px 0;">
                 <div>
-                    <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft-2);margin-bottom:1px;">Total</div>
+                    <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft-2);margin-bottom:1px;">
+                        Total <span style="text-transform:none;letter-spacing:0;">(incl. GST)</span>
+                    </div>
                     <div style="font-family:var(--font-display);font-size:22px;font-weight:500;line-height:1.1;">
-                        ₹{{ number_format($total + $totalShipping, 2) }}</div>
+                        ₹{{ number_format($total + $totalShipping, 2) }}
+                    </div>
                     <div style="font-size:11px;color:var(--soft);margin-top:1px;">
-                        incl. ₹{{ number_format($totalShipping, 2) }} shipping
+                        @if ($totalGst > 0)
+                            ₹{{ number_format($totalGst, 2) }} GST
+                            @if ($totalShipping > 0) · @endif
+                        @endif
+                        @if ($totalShipping > 0)
+                            ₹{{ number_format($totalShipping, 2) }} shipping
+                        @endif
                     </div>
                 </div>
                 <a href="{{ route('checkout') }}" class="btn btn-dark flex-shrink-0"
@@ -372,6 +445,22 @@
             border-radius: 2px;
             white-space: nowrap;
         }
+
+        /* GST rate inline pill */
+        .gst-rate-pill {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            color: var(--soft);
+            background: rgba(0,0,0,0.04);
+            border: 1px solid var(--line);
+            padding: 1px 6px;
+            border-radius: 2px;
+            vertical-align: middle;
+            white-space: nowrap;
+            margin-top: -1px;
+        }
     </style>
 
     <script>
@@ -380,7 +469,7 @@
             const max   = parseInt(input.getAttribute('max')) || 9999;
             if (action === 'up') {
                 if (parseInt(input.value) < max) input.stepUp();
-                else return; // silently block beyond stock
+                else return;
             } else {
                 if (input.value > 1) input.stepDown();
                 else return;
