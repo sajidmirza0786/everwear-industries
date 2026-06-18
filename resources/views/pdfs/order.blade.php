@@ -399,11 +399,11 @@
 
         <thead>
             <tr>
-                <th style="width:36%">Item</th>
+                <th style="width:30%">Item</th>
                 <th class="c" style="width:8%">Qty</th>
                 <th class="r" style="width:14%">Price<br><span style="font-size:8px;font-weight:normal;">(excl. GST)</span></th>
                 <th class="r" style="width:14%">GST</th>
-                <th class="r" style="width:14%">Unit Price<br><span style="font-size:8px;font-weight:normal;">(incl. GST)</span></th>
+                <th class="r" style="width:20%">Unit Price<br><span style="font-size:8px;font-weight:normal;">(incl. GST)</span></th>
                 <th class="r" style="width:14%">Subtotal</th>
             </tr>
         </thead>
