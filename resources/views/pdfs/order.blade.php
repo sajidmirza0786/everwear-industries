@@ -73,7 +73,7 @@
         }
 
         .inv-number{
-            font-size:24px;
+            font-size:18px;
             font-weight:bold;
             color:#111111;
             letter-spacing:1px;
