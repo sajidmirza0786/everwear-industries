@@ -352,8 +352,9 @@
                 <div class="brand-sub">The Legend of Award Products.</div>
             </td>
             <td>
-                <div class="inv-label">Invoice</div>
-                <div class="inv-number">#{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</div>
+                <div class="inv-label">Sales Quotation</div>
+                {{-- <div class="inv-number">#{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</div> --}}
+                <div class="inv-number">#{{ $order->uuid }}</div>
             </td>
         </tr>
     </table>

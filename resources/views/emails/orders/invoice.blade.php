@@ -10,7 +10,7 @@
 <div style="max-width:700px; margin:30px auto; background:#ffffff; padding:40px;">
 
     <h1 style="margin:0 0 25px; color:#111;">
-        Invoice for Order #{{ $order->uuid }}
+        Sales Quotation for Order #{{ $order->uuid }}
     </h1>
 
     <p style="font-size:16px; color:#444;">
