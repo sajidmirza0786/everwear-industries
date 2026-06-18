@@ -454,7 +454,7 @@
                     </td>
 
                     <td class="r">
-                        Rs. {{ number_format($lineTotal, 2) }}
+                        Rs. <strong>{{ number_format($lineTotal, 2) }}</strong>
                     </td>
 
                 </tr>
