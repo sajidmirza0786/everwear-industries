@@ -24,10 +24,10 @@
         .header-table td { vertical-align: bottom; }
 
         .brand { font-size:18px; font-weight:bold; color:#1a1a1a; letter-spacing:1px; text-transform:uppercase; }
-        .brand-sub { font-size:7px; color:#999999; letter-spacing:2.5px; text-transform:uppercase; margin-top:3px; }
+        .brand-sub { font-size:8px; color:black; letter-spacing:2.5px; text-transform:uppercase; margin-top:3px; }
 
         .inv-right { text-align:right; }
-        .inv-type { font-size:7px; color:#999999; letter-spacing:2px; text-transform:uppercase; margin-bottom:3px; }
+        .inv-type { font-size:8px; color:black; letter-spacing:2px; text-transform:uppercase; margin-bottom:3px; }
         .inv-num { font-size:13px; font-weight:bold; color:#1a1a1a; }
 
         /* ── META BAND ── */
@@ -182,11 +182,11 @@
     <table class="header-table" cellpadding="0" cellspacing="0">
         <tr>
             <td>
-                <div class="brand">{{ config('app.name') }}</div>
-                <div class="brand-sub">The Legend of Award Products</div>
+                <div class="brand">EVERWEAR INDUSTRIES</div>
+                <div class="brand-sub"><strong>The Legend of Award Products</strong></div>
             </td>
             <td class="inv-right">
-                <div class="inv-type"> Sales Quotation</div>
+                <div class="inv-type"><strong>Sales Quotation</strong></div>
                 <div class="inv-num">#{{ $order->uuid }}</div>
             </td>
         </tr>
@@ -212,7 +212,7 @@
                     @endphp
                     <span class="badge {{ $sc }}">{{ ucfirst($order->status) }}</span>
                     &nbsp;
-                    <span class="badge {{ $pc }}">{{ strtoupper($order->payment_method) }}</span>
+                    {{-- <span class="badge {{ $pc }}">{{ strtoupper($order->payment_method) }}</span> --}}
                 </div>
             </td>
             <td>

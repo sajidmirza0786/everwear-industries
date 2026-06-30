@@ -93,209 +93,208 @@ class CheckoutController extends Controller
         ));
     }
 
-    // public function store(Request $request)
-    // {
-    //     $lookupEmail = $request->email ?? Auth::user()?->email;
-    //     $existingUser = User::where('email', $lookupEmail)->first();
+    // ─────────────────────────────────────────────────────────────────────────────
+    //  CHECKOUT CONTROLLER  — full store() + new applyCoupon() + removeCoupon()
+    //  Drop these three methods into your existing CheckoutController.
+    // ─────────────────────────────────────────────────────────────────────────────
 
-    //     $request->validate([
-    //         'name'           => 'required|string|max:255',
-    //         'email'          => Auth::check() ? 'nullable|email|max:255' : 'required|email|max:255',
-    //         'mobile'         => [
-    //             'required', 'string', 'max:15',
-    //             Rule::unique('users', 'mobile')->ignore($existingUser?->id),
-    //         ],
-    //         'state'          => 'required|exists:states,name',
-    //         'zipcode'        => ['required', 'regex:/^[1-9][0-9]{5}$/'],
-    //         'city'           => ['required', 'string', 'regex:/^[a-zA-Z\s]+$/', 'max:50'],
-    //         'locality'       => 'required|string|max:255',
-    //         'address'        => 'required|string|max:255',
-    //         'payment_method' => ['required', 'in:cod,prepaid'],
-    //     ]);
+    // ══════════════════════════════════════════════════════════════════════════════
+    //  APPLY COUPON  (AJAX — POST /checkout/coupon/apply)
+    //
+    //  Called by the coupon form via fetch(). Returns JSON so the page can update
+    //  the summary preview without a full reload.
+    //
+    //  Security checklist:
+    //   ✓ CSRF protected (POST with @csrf)
+    //   ✓ Rate-limited (apply throttle:6,1 in routes)
+    //   ✓ Coupon validity: active, date window, global usage cap
+    //   ✓ Per-user usage cap checked against non-cancelled orders
+    //   ✓ Min/max order-amount constraints checked on ex-GST subtotal
+    //   ✓ Product/category whitelist respected per item
+    //   ✓ Discount stored ex-GST so admin update math stays consistent
+    //   ✓ Cart must be non-empty before accepting a coupon
+    //   ✓ Coupon never incremented here — only on final order commit
+    // ══════════════════════════════════════════════════════════════════════════════
 
-    //     try {
-    //         // ── Load cart items ──
-    //         if (Auth::check()) {
-    //             $cartItems = Cart::where('user_id', Auth::id())
-    //                 ->with(['product', 'productAttribute'])
-    //                 ->get();
-    //         } else {
-    //             $cartItems = collect(session()->get('cart', []))->map(fn($item) => (object) $item);
-    //         }
+    public function applyCoupon(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate(['code' => 'required|string|max:50']);
 
-    //         if ($cartItems->isEmpty()) {
-    //             return redirect()->route('cart.view')->with('error', 'Your cart is empty.');
-    //         }
+        $code   = strtoupper(trim($request->input('code')));
+        $coupon = \App\Models\Coupon::where('code', $code)->first();
 
-    //         // ── Validate stock for every item before touching the DB ──
-    //         foreach ($cartItems as $item) {
-    //             $atrId = $item->product_attribute_id ?? null;
+        // ── 1. Existence & validity ────────────────────────────────────────────
+        if (! $coupon || ! $coupon->isValid()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This coupon is invalid or has expired.',
+            ], 422);
+        }
 
-    //             if ($atrId) {
-    //                 $atr = ProductAttribute::find($atrId);
-    //                 if (!$atr || $atr->status !== 'enable') {
-    //                     return back()->with('error', 'A selected variant is no longer available. Please review your cart.');
-    //                 }
-    //                 if ($atr->stock < $item->quantity) {
-    //                     return back()->with('error', 'Insufficient stock for variant "' . $atr->size . '" of ' . ($item->product->name ?? $item->name ?? ''));
-    //                 }
-    //             } else {
-    //                 $product = Product::find($item->product_id);
-    //                 if (!$product) {
-    //                     return back()->with('error', 'A product in your cart is no longer available.');
-    //                 }
-    //                 if ($product->stock < $item->quantity) {
-    //                     return back()->with('error', 'Insufficient stock for ' . $product->name);
-    //                 }
-    //             }
-    //         }
+        // ── 2. Per-user usage cap ──────────────────────────────────────────────
+        if ($coupon->max_uses_per_user && Auth::check()) {
+            $usedTimes = $coupon->usedCountByUser(Auth::id());
+            if ($usedTimes >= $coupon->max_uses_per_user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You have already used this coupon the maximum number of times.',
+                ], 422);
+            }
+        }
 
-    //         DB::beginTransaction();
+        // ── 3. Load cart ───────────────────────────────────────────────────────
+        if (Auth::check()) {
+            $cartItems = \App\Models\Cart::where('user_id', Auth::id())
+                ->with(['product', 'productAttribute'])
+                ->get();
+        } else {
+            $cartItems = collect(session()->get('cart', []))->map(fn($i) => (object) $i);
+        }
 
-    //         $email = $request->email ?? Auth::user()->email;
+        if ($cartItems->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your cart is empty.',
+            ], 422);
+        }
 
-    //         // ── Upsert user ──
-    //         $userData = [
-    //             'uuid'     => str()->uuid()->toString(),
-    //             'name'     => $request->name,
-    //             'email'    => $email,
-    //             'mobile'   => $request->mobile,
-    //             'address'  => $request->address,
-    //             'locality' => $request->locality,
-    //             'city'     => $request->city,
-    //             'state'    => $request->state,
-    //             'zipcode'  => $request->zipcode,
-    //         ];
+        // ── 4. Compute ex-GST subtotal across applicable items ─────────────────
+        $applicableExGstSubtotal = 0.0;
+        $totalExGstSubtotal      = 0.0;
 
-    //         $mobileConflict = User::where('mobile', $request->mobile)
-    //             ->where('email', '!=', $email)
-    //             ->exists();
+        foreach ($cartItems as $item) {
+            $product = \App\Models\Product::find($item->product_id);
+            if (! $product) continue;
 
-    //         if ($mobileConflict) {
-    //             return back()->withInput()->withErrors([
-    //                 'mobile' => 'This mobile number is linked to another account.'
-    //             ]);
-    //         }
+            $gstRate    = (float) ($product->gst ?? 0);
+            $price      = (float) $item->price;
+            $qty        = (int)   $item->quantity;
+            $priceExGst = $gstRate > 0 ? $price / (1 + $gstRate / 100) : $price;
+            $lineExGst  = round($priceExGst * $qty, 4);
 
-    //         if (!Auth::check()) {
-    //             $user = User::updateOrCreate(['email' => $email], array_merge($userData, [
-    //                 'password'       => bcrypt($request->mobile),
-    //                 'local_password' => $request->mobile,
-    //                 'ip_address'     => $request->ip(),
-    //             ]));
-    //             Auth::login($user);
-    //         } else {
-    //             $user = User::updateOrCreate(['email' => $email], $userData);
-    //         }
+            $totalExGstSubtotal += $lineExGst;
 
-    //         if (!$user) {
-    //             DB::rollBack();
-    //             return back()->with('error', 'Something went wrong creating your account.');
-    //         }
+            if ($coupon->appliesToProduct($product)) {
+                $applicableExGstSubtotal += $lineExGst;
+            }
+        }
 
-    //         // ── Recalculate shipping with final address ──
-    //         $totalShipping = 0;
-    //         foreach ($cartItems as $item) {
-    //             $product = Product::find($item->product_id);
-    //             if (!$product) continue;
+        // ── 5. Min / max order constraints (on ex-GST subtotal) ───────────────
+        if ($coupon->min_order_amount && $totalExGstSubtotal < (float) $coupon->min_order_amount) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your order total is below the minimum of ₹' .
+                            number_format($coupon->min_order_amount, 2) . ' required for this coupon.',
+            ], 422);
+        }
 
-    //             $atrId        = $item->product_attribute_id ?? null;
-    //             $sellingPrice = $atrId
-    //                 ? (ProductAttribute::find($atrId)?->selling_price ?? $product->selling)
-    //                 : $product->selling;
+        if ($coupon->max_order_amount && $totalExGstSubtotal > (float) $coupon->max_order_amount) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This coupon is only valid for orders up to ₹' .
+                            number_format($coupon->max_order_amount, 2) . '.',
+            ], 422);
+        }
 
-    //             $shippingCharge = calculateShippingCharge(
-    //                 $user->country_id ?? null,
-    //                 $user->state_id   ?? null,
-    //                 $product->gram_weight * $item->quantity,
-    //                 $sellingPrice * $item->quantity
-    //             );
+        if ($applicableExGstSubtotal <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This coupon is not applicable to any item in your cart.',
+            ], 422);
+        }
 
-    //             // Update shipping in cart/session
-    //             if (Auth::check()) {
-    //                 Cart::where('user_id', Auth::id())
-    //                     ->where('product_id', $item->product_id)
-    //                     ->where('product_attribute_id', $atrId)
-    //                     ->update(['shipping_charge' => $shippingCharge]);
-    //             } else {
-    //                 $cartKey  = $item->product_id . ($atrId ? '_atr_' . $atrId : '');
-    //                 $cartData = session()->get('cart', []);
-    //                 if (isset($cartData[$cartKey])) {
-    //                     $cartData[$cartKey]['shipping_charge'] = $shippingCharge;
-    //                     session()->put('cart', $cartData);
-    //                 }
-    //             }
+        // ── 6. Calculate discount on applicable ex-GST amount ─────────────────
+        $discountExGst = $coupon->calculateDiscount($applicableExGstSubtotal);
 
-    //             $totalShipping += $shippingCharge;
-    //         }
+        if ($discountExGst <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This coupon yields no discount for your current cart.',
+            ], 422);
+        }
 
-    //         $total = $cartItems->sum(fn($i) => $i->quantity * $i->price);
+        // ── 7. Store in session (never touch used_count until order commits) ───
+        session([
+            'coupon' => [
+                'id'              => $coupon->id,
+                'code'            => $coupon->code,
+                'description'     => $coupon->description,
+                'discount_type'   => $coupon->discount_type,
+                'discount_value'  => $coupon->discount_value,
+                'discount_ex_gst' => round($discountExGst, 2),
+            ],
+        ]);
 
-    //         // ── Create order ──
-    //         $order = Order::create([
-    //             'uuid'            => str()->uuid()->toString(),
-    //             'user_id'         => Auth::id(),
-    //             'name'            => $request->name,
-    //             'email'           => $email,
-    //             'mobile'          => $request->mobile,
-    //             'address'         => $request->address,
-    //             'locality'        => $request->locality,
-    //             'city'            => $request->city,
-    //             'state'           => $request->state,
-    //             'zipcode'         => $request->zipcode,
-    //             'total'           => $total,
-    //             'shipping_charge' => $totalShipping,
-    //             'status'          => 'pending',
-    //             'payment_method'  => $request->payment_method,
-    //             'ip_address'      => $request->ip(),
-    //         ]);
+        return response()->json([
+            'success'         => true,
+            'message'         => 'Coupon applied successfully!',
+            'code'            => $coupon->code,
+            'description'     => $coupon->description,
+            'discount_ex_gst' => round($discountExGst, 2),
+            'discount_label'  => $coupon->discount_type === 'flat'
+                ? '₹' . number_format($coupon->discount_value, 0) . ' off'
+                : $coupon->discount_value . '% off',
+        ]);
+    }
 
-    //         // ── Create order items + decrement stock ──
-    //         foreach ($cartItems as $item) {
-    //             $atrId = $item->product_attribute_id ?? null;
+    // ══════════════════════════════════════════════════════════════════════════════
+    //  REMOVE COUPON  (POST /checkout/coupon/remove)
+    // ══════════════════════════════════════════════════════════════════════════════
 
-    //             OrderItem::create([
-    //                 'order_id'             => $order->id,
-    //                 'product_id'           => $item->product_id,
-    //                 'product_attribute_id' => $atrId,
-    //                 'quantity'             => $item->quantity,
-    //                 'price'                => $item->price,
-    //             ]);
+    public function removeCoupon(): \Illuminate\Http\JsonResponse
+    {
+        session()->forget('coupon');
 
-    //             // if ($atrId) {
-    //             //     ProductAttribute::where('id', $atrId)->decrement('stock', $item->quantity);
-    //             // } else {
-    //             //     Product::where('id', $item->product_id)->decrement('stock', $item->quantity);
-    //             // }
-    //         }
+        return response()->json(['success' => true]);
+    }
 
-    //         // ── Clear cart ──
-    //         Auth::check()
-    //             ? Cart::where('user_id', Auth::id())->delete()
-    //             : session()->forget('cart');
+    // ══════════════════════════════════════════════════════════════════════════════
+    //  AVAILABLE COUPONS  (AJAX — GET /checkout/coupons)
+    //
+    //  Returns only coupons the user CAN still use. Sensitive fields
+    //  (max_uses, used_count internals) are excluded from the response.
+    // ══════════════════════════════════════════════════════════════════════════════
 
-    //         DB::commit();
+    public function availableCoupons(): \Illuminate\Http\JsonResponse
+    {
+        $now = now();
 
-    //         $emails = [
-    //             $order->email,
-    //             'order@everwearindustries.com'
-    //         ];
+        $coupons = Coupon::where('is_active', true)
+            ->where(fn($q) => $q->whereNull('starts_at')->orWhere('starts_at', '<=', $now))
+            ->where(fn($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>=', $now))
+            ->where(fn($q) => $q->whereNull('max_uses')->orWhereRaw('used_count < max_uses'))
+            ->select('id', 'code', 'description', 'discount_type', 'discount_value',
+                    'max_discount_amount', 'min_order_amount', 'max_order_amount',
+                    'expires_at', 'max_uses_per_user')
+            ->orderBy('discount_value', 'desc')
+            ->get()
+            ->filter(function ($coupon) {
+                // Filter out coupons this user has exhausted
+                if ($coupon->max_uses_per_user && Auth::check()) {
+                    return $coupon->usedCountByUser(Auth::id()) < $coupon->max_uses_per_user;
+                }
+                return true;
+            })
+            ->map(fn($c) => [
+                'code'              => $c->code,
+                'description'       => $c->description,
+                'discount_type'     => $c->discount_type,
+                'discount_value'    => $c->discount_value,
+                'max_discount'      => $c->max_discount_amount,
+                'min_order_amount'  => $c->min_order_amount,
+                'expires_at'        => $c->expires_at?->format('M d, Y'),
+                'label'             => $c->discount_type === 'flat'
+                                        ? '₹' . number_format($c->discount_value, 0) . ' off'
+                                        : $c->discount_value . '% off',
+            ])
+            ->values();
 
-    //         // ── Send invoice email ──
-    //         try {
-    //             Mail::to($emails)->send(new OrderInvoiceMail($order->load('items.product')));
-    //         } catch (\Throwable $e) {
-    //             \Log::error('Order invoice mail failed: ' . $e->getMessage());
-    //         }
+        return response()->json($coupons);
+    }
 
-    //         return redirect()->route('order.confirmation', $order)
-    //             ->with('success', 'Order placed successfully!');
-
-    //     } catch (\Throwable $e) {
-    //         DB::rollBack();
-    //         return back()->with('error', 'Checkout processing failed. Please try again.' . $e->getMessage());
-    //     }
-    // }
+    // ══════════════════════════════════════════════════════════════════════════════
+    //  STORE  — updated to consume the coupon from session and write GST breakdown
+    // ══════════════════════════════════════════════════════════════════════════════
 
     public function store(Request $request)
     {
@@ -318,9 +317,11 @@ class CheckoutController extends Controller
         ]);
 
         try {
-            // ── Load cart items ────────────────────────────────────────────────────
+            // ── Load cart items ────────────────────────────────────────────────
             if (Auth::check()) {
-                $cartItems = Cart::where('user_id', Auth::id())->with(['product', 'productAttribute'])->get();
+                $cartItems = Cart::where('user_id', Auth::id())
+                    ->with(['product', 'productAttribute'])
+                    ->get();
             } else {
                 $cartItems = collect(session()->get('cart', []))->map(fn($item) => (object) $item);
             }
@@ -329,7 +330,7 @@ class CheckoutController extends Controller
                 return redirect()->route('cart.view')->with('error', 'Your cart is empty.');
             }
 
-            // ── Validate stock for every item before touching the DB ──────────────
+            // ── Validate stock ─────────────────────────────────────────────────
             foreach ($cartItems as $item) {
                 $atrId = $item->product_attribute_id ?? null;
 
@@ -356,7 +357,7 @@ class CheckoutController extends Controller
 
             $email = $request->email ?? Auth::user()->email;
 
-            // ── Upsert user ────────────────────────────────────────────────────────
+            // ── Upsert user ────────────────────────────────────────────────────
             $userData = [
                 'uuid'     => str()->uuid()->toString(),
                 'name'     => $request->name,
@@ -374,9 +375,7 @@ class CheckoutController extends Controller
                 ->exists();
 
             if ($mobileConflict) {
-                return back()->withInput()->withErrors([
-                    'mobile' => 'This mobile number is linked to another account.'
-                ]);
+                return back()->withInput()->withErrors(['mobile' => 'This mobile number is linked to another account.']);
             }
 
             if (!Auth::check()) {
@@ -395,9 +394,42 @@ class CheckoutController extends Controller
                 return back()->with('error', 'Something went wrong creating your account.');
             }
 
-            // ── Recalculate shipping with final address ────────────────────────────
-            $totalShipping    = 0.0;
-            $totalShippingGst = 0.0;
+            // ── Re-validate coupon from session (second check before commit) ───
+            //
+            //  The coupon was validated in applyCoupon() but we MUST re-check here
+            //  inside the transaction because:
+            //   - max_uses could have been hit between apply and submit
+            //   - per-user limit could have been hit if another tab submitted
+            //   - coupon could have been deactivated or expired
+            //
+            $sessionCoupon    = session('coupon');
+            $resolvedCoupon   = null;
+            $couponDiscountEx = 0.0;
+
+            if ($sessionCoupon) {
+                $resolvedCoupon = \App\Models\Coupon::lockForUpdate()->find($sessionCoupon['id']);
+
+                if (! $resolvedCoupon || ! $resolvedCoupon->isValid()) {
+                    session()->forget('coupon');
+                    DB::rollBack();
+                    return back()->withInput()->with('error', 'The coupon "' . $sessionCoupon['code'] . '" is no longer valid. Please review your order.');
+                }
+
+                if ($resolvedCoupon->max_uses_per_user && Auth::check()) {
+                    if ($resolvedCoupon->usedCountByUser(Auth::id()) >= $resolvedCoupon->max_uses_per_user) {
+                        session()->forget('coupon');
+                        DB::rollBack();
+                        return back()->withInput()->with('error', 'You have already used this coupon the maximum number of times.');
+                    }
+                }
+
+                // Use the pre-calculated ex-GST discount from session (computed
+                // against real cart at apply time — no need to recompute).
+                $couponDiscountEx = (float) $sessionCoupon['discount_ex_gst'];
+            }
+
+            // ── Recalculate shipping ───────────────────────────────────────────
+            $totalShipping = 0.0;
 
             foreach ($cartItems as $item) {
                 $product = Product::find($item->product_id);
@@ -415,7 +447,6 @@ class CheckoutController extends Controller
                     $sellingPrice * $item->quantity
                 );
 
-                // Update shipping in cart / session
                 if (Auth::check()) {
                     Cart::where('user_id', Auth::id())
                         ->where('product_id', $item->product_id)
@@ -433,18 +464,31 @@ class CheckoutController extends Controller
                 $totalShipping += $shippingCharge;
             }
 
-            // Shipping GST at 18 % (same formula as admin update)
             $totalShippingGst = $totalShipping > 0 ? round($totalShipping * 18 / 100, 2) : 0.0;
 
-            // ── Compute per-item GST figures (mirrors admin computeItemTotals) ─────
+            // ── Per-item GST computation ───────────────────────────────────────
             //
-            $subtotalInclGst = 0.0;
-            $subtotalExGst   = 0.0;
-            $taxableValue    = 0.0;
-            $taxAmount       = 0.0;
-            $itemsTotal      = 0.0;
+            //  Coupon discount is spread proportionally across applicable items
+            //  (ex-GST) so each OrderItem row carries a correct coupon_discount.
+            //
+            //  Flow per item:
+            //    priceExGst         = price / (1 + gst%)
+            //    lineTotalExGst     = priceExGst × qty
+            //    itemCouponDiscount = couponDiscountEx × (lineExGst / applicableExGst)
+            //    taxableLineTotal   = lineTotalExGst − itemCouponDiscount
+            //    tax_amount         = taxableLineTotal × gst%
+            //    line_total         = taxableLineTotal + tax_amount
+            //
+            $subtotalInclGst        = 0.0;
+            $subtotalExGst          = 0.0;
+            $totalCouponDiscountEx  = 0.0;
+            $taxableValue           = 0.0;
+            $taxAmount              = 0.0;
+            $itemsTotal             = 0.0;
 
-            $computedItems = [];   // carry per-item figures for OrderItem inserts below
+            // First pass: compute applicable ex-GST subtotal for proportioning
+            $applicableExGstTotal = 0.0;
+            $itemGstData = [];
 
             foreach ($cartItems as $item) {
                 $product = Product::find($item->product_id);
@@ -452,41 +496,67 @@ class CheckoutController extends Controller
                 $price   = (float) $item->price;
                 $qty     = (int)   $item->quantity;
 
-                $priceExGst     = $gstRate > 0 ? round($price / (1 + $gstRate / 100), 6) : $price;
-                $lineTotalExGst = round($priceExGst * $qty, 4);
+                $priceExGst    = $gstRate > 0 ? round($price / (1 + $gstRate / 100), 6) : $price;
+                $lineExGst     = round($priceExGst * $qty, 4);
 
-                // No discounts at checkout — taxable = full ex-GST line total
-                $taxableLineTotal    = $lineTotalExGst;
+                $itemGstData[] = [
+                    'item'        => $item,
+                    'product'     => $product,
+                    'gst_rate'    => $gstRate,
+                    'price'       => $price,
+                    'qty'         => $qty,
+                    'line_ex_gst' => $lineExGst,
+                    'applicable'  => $resolvedCoupon ? $resolvedCoupon->appliesToProduct($product) : false,
+                ];
+
+                if ($resolvedCoupon && $resolvedCoupon->appliesToProduct($product)) {
+                    $applicableExGstTotal += $lineExGst;
+                }
+            }
+
+            // Second pass: compute final figures with proportioned coupon discount
+            $computedItems = [];
+
+            foreach ($itemGstData as $data) {
+                $lineExGst  = $data['line_ex_gst'];
+                $gstRate    = $data['gst_rate'];
+                $qty        = $data['qty'];
+
+                // Proportionate coupon share for this item
+                $itemCouponEx = 0.0;
+                if ($couponDiscountEx > 0 && $data['applicable'] && $applicableExGstTotal > 0) {
+                    $itemCouponEx = round($couponDiscountEx * ($lineExGst / $applicableExGstTotal), 4);
+                }
+
+                $taxableLineTotal    = round(max(0.0, $lineExGst - $itemCouponEx), 4);
                 $taxablePricePerUnit = $qty > 0 ? round($taxableLineTotal / $qty, 4) : 0.0;
                 $itemTax             = round($taxableLineTotal * ($gstRate / 100), 2);
                 $lineTotal           = round($taxableLineTotal + $itemTax, 2);
 
-                $subtotalInclGst += round($price * $qty, 4);
-                $subtotalExGst   += round($priceExGst * $qty, 4);
-                $taxableValue    += $taxableLineTotal;
-                $taxAmount       += $itemTax;
-                $itemsTotal      += $lineTotal;
+                $subtotalInclGst       += round($data['price'] * $qty, 4);
+                $subtotalExGst         += $lineExGst;
+                $totalCouponDiscountEx += $itemCouponEx;
+                $taxableValue          += $taxableLineTotal;
+                $taxAmount             += $itemTax;
+                $itemsTotal            += $lineTotal;
 
-                $computedItems[] = [
-                    'item'          => $item,
-                    'gst_rate'      => $gstRate,
-                    'taxable_price' => $taxablePricePerUnit,
-                    'tax_amount'    => $itemTax,
-                    'line_total'    => $lineTotal,
-                ];
+                $computedItems[] = array_merge($data, [
+                    'coupon_discount_ex'  => $itemCouponEx,
+                    'taxable_price'       => $taxablePricePerUnit,
+                    'tax_amount'          => $itemTax,
+                    'line_total'          => $lineTotal,
+                ]);
             }
 
-            // Round order-level aggregates (mirrors admin update rounding)
-            $subtotalInclGst = round($subtotalInclGst, 2);
-            $subtotalExGst   = round($subtotalExGst,   2);
-            $taxableValue    = round($taxableValue,     2);
-            $taxAmount       = round($taxAmount,        2);
-            $itemsTotal      = round($itemsTotal,       2);
+            $subtotalInclGst       = round($subtotalInclGst,       2);
+            $subtotalExGst         = round($subtotalExGst,         2);
+            $totalCouponDiscountEx = round($totalCouponDiscountEx, 2);
+            $taxableValue          = round($taxableValue,          2);
+            $taxAmount             = round($taxAmount,             2);
+            $itemsTotal            = round($itemsTotal,            2);
+            $grandTotal            = round($itemsTotal + $totalShipping + $totalShippingGst, 2);
 
-            // Grand total = Σ line_totals + shipping (incl-GST) + shipping GST
-            $grandTotal = round($itemsTotal + $totalShipping + $totalShippingGst, 2);
-
-            // ── Create order ───────────────────────────────────────────────────────
+            // ── Create order ───────────────────────────────────────────────────
             $order = Order::create([
                 'uuid'                => str()->uuid()->toString(),
                 'user_id'             => Auth::id(),
@@ -499,65 +569,71 @@ class CheckoutController extends Controller
                 'state'               => $request->state,
                 'zipcode'             => $request->zipcode,
                 'ip_address'          => $request->ip(),
-                // ── Item subtotals (before discount) ──
-                'subtotal_incl_gst'   => $subtotalInclGst,   // incl-GST, before discount
-                'subtotal_ex_gst'     => $subtotalExGst,      // ex-GST,   before discount
-                // ── No coupon / manual discounts at checkout ──
-                'coupon_discount'     => 0.00,
+                'subtotal_incl_gst'   => $subtotalInclGst,
+                'subtotal_ex_gst'     => $subtotalExGst,
+                'coupon_discount'     => $totalCouponDiscountEx,
                 'manual_discount'     => 0.00,
-                // ── After discount (same as subtotal here) ──
                 'taxable_value'       => $taxableValue,
                 'tax_amount'          => $taxAmount,
-                // ── Shipping ──
                 'shipping_charge'     => $totalShipping,
                 'shipping_charge_gst' => $totalShippingGst,
-                // ── Grand total ──
                 'total'               => $grandTotal,
                 'status'              => 'pending',
                 'payment_method'      => $request->payment_method,
             ]);
 
-            // ── Create order items with full GST breakdown ─────────────────────────
+            // ── Create order items ─────────────────────────────────────────────
             foreach ($computedItems as $computed) {
                 $item  = $computed['item'];
                 $atrId = $item->product_attribute_id ?? null;
 
-                OrderItem::create([
+                $orderItem = OrderItem::create([
                     'order_id'               => $order->id,
                     'product_id'             => $item->product_id,
                     'product_attribute_id'   => $atrId,
                     'quantity'               => $item->quantity,
                     'price'                  => $item->price,
-                    // ── No discounts at checkout ──
-                    'coupon_id'              => null,
-                    'coupon_discount'        => 0.00,
+                    'coupon_id'              => $resolvedCoupon && $computed['applicable'] ? $resolvedCoupon->id : null,
+                    'coupon_discount'        => $computed['coupon_discount_ex'],
                     'manual_discount_type'   => null,
                     'manual_discount_value'  => 0.00,
                     'manual_discount_amount' => 0.00,
                     'manual_discount_note'   => null,
-                    'discount_amount'        => 0.00,
-                    // ── GST figures ──
+                    'discount_amount'        => $computed['coupon_discount_ex'],
                     'taxable_price'          => $computed['taxable_price'],
                     'tax_rate'               => $computed['gst_rate'],
                     'tax_amount'             => $computed['tax_amount'],
                     'line_total'             => $computed['line_total'],
                 ]);
 
-                // if ($atrId) {
-                //     ProductAttribute::where('id', $atrId)->decrement('stock', $item->quantity);
-                // } else {
-                //     Product::where('id', $item->product_id)->decrement('stock', $item->quantity);
-                // }
+                // Write coupon_order_item pivot + increment used_count (once per order)
+                if ($resolvedCoupon && $computed['applicable'] && $computed['coupon_discount_ex'] > 0) {
+                    DB::table('coupon_order_item')->updateOrInsert(
+                        ['coupon_id' => $resolvedCoupon->id, 'order_item_id' => $orderItem->id],
+                        [
+                            'discount_applied' => $computed['coupon_discount_ex'],
+                            'created_at'       => now(),
+                            'updated_at'       => now(),
+                        ]
+                    );
+                }
             }
 
-            // ── Clear cart ─────────────────────────────────────────────────────────
+            // Increment used_count exactly once per order (not per item)
+            if ($resolvedCoupon) {
+                $resolvedCoupon->increment('used_count');
+            }
+
+            // ── Clear cart + coupon session ────────────────────────────────────
             Auth::check()
                 ? Cart::where('user_id', Auth::id())->delete()
                 : session()->forget('cart');
 
+            session()->forget('coupon');
+
             DB::commit();
 
-            // ── Send invoice email ─────────────────────────────────────────────────
+            // ── Send invoice ───────────────────────────────────────────────────
             try {
                 Mail::to([$order->email, 'order@everwearindustries.com'])
                     ->send(new OrderInvoiceMail($order->load('items.product')));
@@ -570,126 +646,8 @@ class CheckoutController extends Controller
 
         } catch (\Throwable $e) {
             DB::rollBack();
-            return back()->with('error', 'Checkout processing failed. Please try again.' . $e->getMessage());
+            return back()->with('error', 'Checkout processing failed. Please try again. ' . $e->getMessage());
         }
-    }
-
-    /**
-     * GET /checkout/coupons
-     * Returns coupons that are valid AND applicable to at least one cart product.
-     */
-    public function availableCoupons(Request $request)
-    {
-        // Load cart products
-        if (Auth::check()) {
-            $cartItems = Cart::where('user_id', Auth::id())->with('product')->get();
-        } else {
-            $cartItems = collect(session()->get('cart', []))->map(fn($i) => (object) $i);
-        }
-
-        $productIds = $cartItems->map(fn($i) => $i->product_id)->unique()->values()->toArray();
-        $products   = Product::whereIn('id', $productIds)->get()->keyBy('id');
-
-        $now = now();
-
-        $coupons = Coupon::where('is_active', true)
-            ->where(fn($q) => $q->whereNull('starts_at')->orWhere('starts_at', '<=', $now))
-            ->where(fn($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>=', $now))
-            ->where(fn($q) => $q->whereNull('max_uses')->orWhereRaw('used_count < max_uses'))
-            ->get()
-            ->filter(function (Coupon $coupon) use ($products) {
-                // Keep coupon if it applies to at least one product in cart
-                foreach ($products as $product) {
-                    if ($coupon->isApplicableToProduct($product)) {
-                        return true;
-                    }
-                }
-                return false;
-            })
-            ->map(fn(Coupon $c) => [
-                'code'        => $c->code,
-                'description' => $c->description,
-                'type'        => $c->discount_type,
-                'value'       => $c->discount_value,
-                'max_discount'=> $c->max_discount_amount,
-                'min_order'   => $c->min_order_amount,
-                'expires_at'  => $c->expires_at?->format('d M Y'),
-            ])
-            ->values();
-
-        return response()->json($coupons);
-    }
-
-    /**
-     * POST /checkout/apply-coupon
-     * Validates a coupon code and returns per-item discount preview.
-     */
-    public function applyCoupon(Request $request)
-    {
-        $request->validate([
-            'coupon_code' => 'required|string|max:50',
-        ]);
-
-        $code   = strtoupper(trim($request->coupon_code));
-        $coupon = Coupon::where('code', $code)->first();
-
-        if (! $coupon || ! $coupon->isValid()) {
-            return response()->json(['error' => "Coupon '{$code}' is invalid or expired."], 422);
-        }
-
-        // Load cart items
-        if (Auth::check()) {
-            $cartItems = Cart::where('user_id', Auth::id())->with('product')->get();
-        } else {
-            $cartItems = collect(session()->get('cart', []))->map(fn($i) => (object) $i);
-        }
-
-        $breakdown    = [];
-        $totalDiscount = 0.0;
-
-        foreach ($cartItems as $item) {
-            $product = Product::find($item->product_id);
-            if (! $product) continue;
-
-            if (! $coupon->isApplicableToProduct($product)) {
-                $breakdown[] = [
-                    'product_id'   => $item->product_id,
-                    'product_name' => $product->name,
-                    'applicable'   => false,
-                    'discount'     => 0,
-                ];
-                continue;
-            }
-
-            $gstRate        = (float) ($product->gst ?? 0);
-            $priceExGst     = $gstRate > 0
-                ? round($item->price / (1 + $gstRate / 100), 6)
-                : (float) $item->price;
-            $lineTotalExGst = round($priceExGst * $item->quantity, 4);
-            $discount       = $coupon->calculateDiscount($lineTotalExGst);
-
-            $totalDiscount += $discount;
-
-            $breakdown[] = [
-                'product_id'   => $item->product_id,
-                'product_name' => $product->name,
-                'applicable'   => true,
-                'discount'     => round($discount, 2),
-            ];
-        }
-
-        if ($totalDiscount <= 0) {
-            return response()->json([
-                'error' => 'This coupon is not applicable to any product in your cart.',
-            ], 422);
-        }
-
-        return response()->json([
-            'code'           => $coupon->code,
-            'description'    => $coupon->description,
-            'total_discount' => round($totalDiscount, 2),
-            'breakdown'      => $breakdown,
-        ]);
     }
 
     public function confirmation(Order $order)

@@ -39,11 +39,11 @@ Route::controller(CartController::class)->prefix('cart')->name('cart.')->group(f
 
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
-// Route::middleware(['throttle:10,1'])->group(function () {
-//     Route::get ('/checkout/coupons',       [CheckoutController::class, 'availableCoupons'])->name('checkout.coupons.list');
-//     Route::post('/checkout/coupon/apply',  [CheckoutController::class, 'applyCoupon'])->name('checkout.coupon.apply');
-//     Route::post('/checkout/coupon/remove', [CheckoutController::class, 'removeCoupon'])->name('checkout.coupon.remove');
-// });
+Route::middleware(['throttle:10,1'])->group(function () {
+    Route::get ('/checkout/coupons',       [CheckoutController::class, 'availableCoupons'])->name('checkout.coupons.list');
+    Route::post('/checkout/coupon/apply',  [CheckoutController::class, 'applyCoupon'])->name('checkout.coupon.apply');
+    Route::post('/checkout/coupon/remove', [CheckoutController::class, 'removeCoupon'])->name('checkout.coupon.remove');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
