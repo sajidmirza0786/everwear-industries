@@ -39,6 +39,11 @@ Route::controller(CartController::class)->prefix('cart')->name('cart.')->group(f
 
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+// Route::middleware(['throttle:10,1'])->group(function () {
+//     Route::get ('/checkout/coupons',       [CheckoutController::class, 'availableCoupons'])->name('checkout.coupons.list');
+//     Route::post('/checkout/coupon/apply',  [CheckoutController::class, 'applyCoupon'])->name('checkout.coupon.apply');
+//     Route::post('/checkout/coupon/remove', [CheckoutController::class, 'removeCoupon'])->name('checkout.coupon.remove');
+// });
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -79,7 +84,17 @@ Route::namespace('App\Http\Controllers\Admin')->middleware(['auth', 'admin'])->p
 
         Route::controller(OrderController::class)->prefix('orders')->name('orders.')->group(function(){
             Route::get('{order}/pdf', 'pdf')->name('pdf');
+            Route::get('orders/products/search', 'productSearch')->name('products.search');
         });
+
+        Route::controller(CouponController::class)->prefix('coupons')->name('coupons.')->group(function(){
+            // AJAX: validate coupon code against a subtotal
+            Route::post('validate', 'validateCoupon')->name('validate');
+            Route::put('toggle/{coupon}', 'toggle')->name('toggle');
+        });
+    
+        // ── Coupons ────────────────────────────────────────────────────────────
+        Route::resource('coupons', CouponController::class);
 
         Route::resource('categories', CategoryController::class);
         Route::resource('products', ProductsController::class);

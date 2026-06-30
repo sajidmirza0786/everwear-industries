@@ -94,7 +94,7 @@
                             </div>
                         @endif
 
-                        <form method="POST" action="{{ route('storeEnquiry') }}">
+                        <form method="POST" action="{{ route('storeEnquiry') }}" id="contactForm">
                             @csrf
 
                             <div class="row g-3 mb-3">
@@ -127,8 +127,16 @@
 
                             <div class="mb-3">
                                 <label for="subject">Subject</label>
-                                <input type="subject" id="subject" name="subject" class="form-control mt-1"
-                                    placeholder="subject" value="{{ old('subject') }}" required>
+                                <select id="subject" name="subject" class="form-control mt-1" required>
+                                    <option value="">Select Subject</option>
+                                    <option value="Order Enquiry" {{ old('subject') == 'Order Enquiry' ? 'selected' : '' }}>Order Enquiry</option>
+                                    <option value="Shipping & Delivery" {{ old('subject') == 'Shipping & Delivery' ? 'selected' : '' }}>Shipping & Delivery</option>
+                                    <option value="Returns & Refunds" {{ old('subject') == 'Returns & Refunds' ? 'selected' : '' }}>Returns & Refunds</option>
+                                    <option value="Product Information" {{ old('subject') == 'Product Information' ? 'selected' : '' }}>Product Information</option>
+                                    <option value="General Support" {{ old('subject') == 'General Support' ? 'selected' : '' }}>General Support</option>
+                                    <option value="Other" {{ old('subject') == 'Other' ? 'selected' : '' }}>Other</option>
+                                </select>
+
                                 @error('subject')
                                     <span style="font-size:12px;color:var(--danger);">{{ $message }}</span>
                                 @enderror
@@ -143,10 +151,19 @@
                                 @enderror
                             </div>
 
-                            <button type="submit" class="btn btn-dark btn-lg w-100"
+                            <button type="submit" id="submitBtn" class="btn btn-dark btn-lg w-100"
+                                style="letter-spacing:0.12em;text-transform:uppercase;font-size:13px;">
+                                <span id="btnText">Send Message &nbsp;<i class="bi bi-arrow-right"></i></span>
+                                <span id="btnLoader" style="display:none;">
+                                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                    Sending…
+                                </span>
+                            </button>
+
+                            {{-- <button type="submit" class="btn btn-dark btn-lg w-100"
                                 style="letter-spacing:0.12em;text-transform:uppercase;font-size:13px;">
                                 Send Message &nbsp;<i class="bi bi-arrow-right"></i>
-                            </button>
+                            </button> --}}
                         </form>
                     </div>
                 </div>
@@ -327,4 +344,24 @@
             font-size: 16px;
         }
     </style>
+@endsection
+
+@section('scripts')
+<script>
+    (function() {
+        var form = document.getElementById('contactForm');
+        if (!form) return;
+
+        form.addEventListener('submit', function () {
+            var btn    = document.getElementById('submitBtn');
+            var text   = document.getElementById('btnText');
+            var loader = document.getElementById('btnLoader');
+
+            btn.disabled = true;
+            text.style.display   = 'none';
+            loader.style.display = 'inline-flex';
+            loader.style.alignItems = 'center';
+        });
+    })();
+</script>
 @endsection

@@ -21,6 +21,7 @@ return new class extends Migration
             $table->bigInteger('user_id')->nullable();   
             $table->string('action')->nullable();          
             $table->text('description')->nullable();
+            $table->bigInteger('tracking_id')->nullable();
             $table->timestamps();
         });
     }

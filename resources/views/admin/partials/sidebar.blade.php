@@ -87,6 +87,25 @@
             </ul>
         </li>
 
+        <li class="menu-item {{ request()->routeIs('admin.coupons.*') ? 'active open' : '' }}">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-diamond"></i> 
+                <div data-i18n="coupons">Coupon Master</div>
+            </a>
+            <ul class="menu-sub">
+                <li class="menu-item {{ request()->routeIs('admin.coupons.index') ? 'active' : '' }}">
+                    <a href="{{ route('admin.coupons.index') }}" class="menu-link">
+                        <div data-i18n="View coupons">View Coupon</div> 
+                    </a>
+                </li>
+                <li class="menu-item {{ request()->routeIs('admin.coupons.create') || request()->routeIs('admin.coupons.edit') ? 'active' : '' }}">
+                    <a href="{{ route('admin.coupons.create') }}" class="menu-link">
+                        <div data-i18n="Add New Product">Add New Coupon</div>
+                    </a>
+                </li>
+            </ul>
+        </li>
+
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text">Orders</span>
         </li>

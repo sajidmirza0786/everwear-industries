@@ -13,3 +13,4 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="stylesheet" href="{{ url('users/assets/css/style.css') }}" />
   <link rel="icon" href="{{ url('users/assets/images/logo.png') }}" type="image/x-icon">
+  <meta name="csrf-token" content="{{ csrf_token() }}">

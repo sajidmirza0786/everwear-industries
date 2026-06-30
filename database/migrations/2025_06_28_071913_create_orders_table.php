@@ -24,18 +24,26 @@ return new class extends Migration
             $table->string('locality')->nullable();
             $table->string('ip_address')->nullable();
             $table->text('address');
+
+            $table->decimal('coupon_discount', 8, 2)->default(0.00);
+            $table->decimal('manual_discount', 8, 2)->default(0.00);
+
+            $table->decimal('subtotal_incl_gst', 8, 2)->default(0.00);
+            $table->decimal('subtotal_ex_gst', 8, 2)->default(0.00);
+            $table->decimal('tax_amount', 8, 2)->default(0.00);
+            $table->decimal('taxable_value', 8, 2)->default(0.00);
             $table->decimal('total', 8, 2);
+            
             $table->decimal('total_weight', 8, 2)->default(0.00);
             $table->decimal('shipping_charge', 8, 2)->default(0.00);
+            $table->decimal('shipping_charge_gst', 8, 2)->default(0.00);
+
             $table->enum('status', ['pending', 'completed', 'cancelled', 'in-transit'])->default('pending');
             $table->enum('payment_method', ['prepaid', 'cod'])->default('prepaid');
+
             $table->timestamps();
 
-            $table->foreign('user_id')
-                ->references('id')
-                ->on('users')
-                ->onDelete('set null')
-                ->onUpdate('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null')->onUpdate('cascade');
         });
     }
 

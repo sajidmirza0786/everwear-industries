@@ -8,9 +8,27 @@ use App\Models\Enquiry;
 use Illuminate\Support\Facades\DB;
 use App\Mail\TestMail;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\EnquiryMail;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\Rule;
 
 class PageController extends Controller
 {
+    private const ORDER_SUBJECTS = [
+        'Order Enquiry',
+        'Shipping & Delivery',
+        'Returns & Refunds',
+    ];
+
+    private const ALL_SUBJECTS = [
+        'Order Enquiry',
+        'Shipping & Delivery',
+        'Returns & Refunds',
+        'Product Information',
+        'General Support',
+        'Other',
+    ];
+
     public function categories()
     {
         $categories   = Category::where('status', 'enable')->whereNull('parent_id')->withCount('products')->get();
@@ -61,36 +79,94 @@ class PageController extends Controller
         }
     }
 
+    // public function storeEnquiry(Request $request)
+    // {
+    //     if ($request->isMethod('post')) {
+    //         $validated = $request->validate([
+    //             'name'    => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
+    //             'email'   => ['required', 'email', 'max:255'],
+    //             'mobile'  => ['required', 'digits_between:10,13'],
+    //             'subject' => ['required', 'string', 'max:255', 'not_regex:/https?:\/\//i'],
+    //             'message' => ['required', 'string', 'max:1000', 'not_regex:/https?:\/\//i'],
+    //         ], [
+    //             'subject.not_regex' => 'Subject cannot contain URLs.',
+    //             'message.not_regex' => 'Message cannot contain URLs.',
+    //         ]);
+
+    //         $validated['ip_address'] = $request->ip();
+    //         $validated['page_url'] = $request->headers->get('referer');
+
+    //         try {
+    //             DB::beginTransaction();
+    //             Enquiry::create($validated);
+    //             DB::commit();
+
+    //             return back()->with('success', 'Thank you! We will contact you shortly.');
+
+    //         } catch (\Throwable $e) {
+    //             DB::rollBack();
+    //             return back()->with('error', 'Something went wrong. Please try again later.');
+    //         }
+    //     } else {
+    //         return redirect(route('contact'));
+    //     }
+    // }
+
     public function storeEnquiry(Request $request)
     {
-        if ($request->isMethod('post')) {
-            $validated = $request->validate([
-                'name'    => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
-                'email'   => ['required', 'email', 'max:255'],
-                'mobile'  => ['required', 'digits_between:10,13'],
-                'subject' => ['required', 'string', 'max:255', 'not_regex:/https?:\/\//i'],
-                'message' => ['required', 'string', 'max:1000', 'not_regex:/https?:\/\//i'],
-            ], [
-                'subject.not_regex' => 'Subject cannot contain URLs.',
-                'message.not_regex' => 'Message cannot contain URLs.',
-            ]);
+        if (! $request->isMethod('post')) {
+            return redirect()->route('contact');
+        }
 
-            $validated['ip_address'] = $request->ip();
-            $validated['page_url'] = $request->headers->get('referer');
+        // ── Rate limiting ────────────────────────────────────────────────────
+        $key = 'enquiry:' . $request->ip();
+        if (RateLimiter::tooManyAttempts($key, 3)) {
+            $seconds = RateLimiter::availableIn($key);
+            return back()->with('error', "Too many submissions. Please try again in {$seconds} seconds.");
+        }
+        RateLimiter::hit($key, 300); // 5minutes
 
-            try {
-                DB::beginTransaction();
-                Enquiry::create($validated);
-                DB::commit();
+        // ── Validation ───────────────────────────────────────────────────────
+        $validated = $request->validate([
+            'name'    => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s]+$/'],
+            'email'   => ['required', 'email:rfc,dns', 'max:255'],
+            'mobile'  => ['required', 'digits_between:10,13'],
+            'subject' => ['required', 'string', Rule::in(self::ALL_SUBJECTS)],
+            'message' => ['required', 'string', 'max:1000', 'not_regex:/https?:\/\//i'],
+        ], [
+            'subject.in'        => 'Please select a valid subject from the list.',
+            'message.not_regex' => 'Message cannot contain URLs.',
+            'email.email'       => 'Please enter a valid email address.',
+        ]);
 
-                return back()->with('success', 'Thank you! We will contact you shortly.');
+        $validated['ip_address'] = $request->ip();
+        $validated['page_url']   = $request->headers->get('referer');
 
-            } catch (\Throwable $e) {
-                DB::rollBack();
-                return back()->with('error', 'Something went wrong. Please try again later.');
-            }
-        } else {
-            return redirect(route('contact'));
+        // ── Resolve RECIPIENT address based on subject ───────────────────────
+        $isOrderRelated = in_array($validated['subject'], self::ORDER_SUBJECTS, strict: true);
+
+        // $toAddress = $isOrderRelated
+        //     ? 'order@everwearindustries.com'
+        //     : 'support@everwearindustries.com';
+
+        $toAddress = $isOrderRelated
+            ? 'cypwebtechs@gmail.com'
+            : 'sajidmirja19@gmail.com';
+
+        // ── Save + Send ──────────────────────────────────────────────────────
+        try {
+            DB::beginTransaction();
+            Enquiry::create($validated);
+            DB::commit();
+
+            Mail::to($toAddress)->send(new EnquiryMail($validated));
+
+            return back()->with('success', 'Thank you! We will contact you shortly.');
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return back()->with('error', 'Something went wrong. Please try again later.');
         }
     }
 

@@ -9,7 +9,7 @@ use App\Models\Cart;
 use Illuminate\Support\Collection;
 
 if (!function_exists('accessLog')) {
-    function accessLog($action, $type, $requestData = null, $userId = null, $model_name = null, $model_id = null)
+    function accessLog($action, $type, $requestData = null, $userId = null, $model_name = null, $model_id = null, $ordertrackingId = null)
     {
         // If action is not 'update', convert request data to JSON
         if ($action !== 'update') {
@@ -29,6 +29,7 @@ if (!function_exists('accessLog')) {
             'user_id' => $userId,
             'action' => $formattedAction,
             "description" => $requestData,
+            'tracking_id' => $ordertrackingId,
         ];
 
         // Store data in the database
@@ -43,7 +44,7 @@ if (!function_exists('get_logs')) {
     {
         // Store data in the database
         $logs = AccessLog::where('model_type', $model_name)->where('model_id', $model_id)
-            ->orderByDesc('id')->get();
+            ->orderByDesc('id')->paginate(20);
 
         return $logs; // Return true
     }
@@ -62,22 +63,47 @@ if (!function_exists('compareValues')) {
         // Convert the old value to an associative array for comparison
         $oldValues = json_decode(json_encode($oldValue), true);
 
-        // Calculate the differences between the validated data and the old values
-        $diff = array_diff_assoc($newValue, $oldValues);
+        $diff = [];
+
+        foreach ($newValue as $key => $value) {
+            if (!array_key_exists($key, $oldValues)) {
+                continue; // skip keys that don't exist in old model
+            }
+
+            $old = $oldValues[$key];
+            $new = $value;
+
+            // Normalize numeric values to float rounded to 2 decimal places
+            if (is_numeric($old) && is_numeric($new)) {
+                $old = round((float) $old, 2);
+                $new = round((float) $new, 2);
+            }
+
+            // Normalize nulls and empty strings to null
+            if ($old === '' || $old === null) $old = null;
+            if ($new === '' || $new === null) $new = null;
+
+            // Strict comparison after normalization
+            if ($old !== $new) {
+                $diff[$key] = [
+                    'old' => $oldValues[$key], // keep original for display
+                    'new' => $value,
+                ];
+            }
+        }
 
         // Initialize the formatted description of changes
         $formattedDescription = '';
 
-        // Check if there are any differences
         if (!empty($diff)) {
-            // If differences exist, iterate through each difference
-            foreach ($diff as $key => $item) {
-                // Append each difference to the formatted description
-                $formattedDescription .= $key . ' updated From: ' . $oldValue[$key] . ' To: ' . $item . '' . "\n";
+            foreach ($diff as $key => $change) {
+                $oldDisplay = is_null($change['old']) ? 'N/A' : $change['old'];
+                $newDisplay = is_null($change['new']) ? 'N/A' : $change['new'];
+
+                $formattedDescription .= $key . ' updated From: ' . $oldDisplay . ' To: ' . $newDisplay . "\n";
             }
         }
 
-        // Return the formatted description of changes
         return $formattedDescription;
     }
 }
