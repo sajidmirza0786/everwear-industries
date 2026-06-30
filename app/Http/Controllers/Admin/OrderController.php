@@ -13,6 +13,8 @@ use App\Models\ProductAttribute;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Mail\OrderInvoiceMail;
+use Illuminate\Support\Facades\Mail;
 
 class OrderController extends Controller
 {
@@ -365,6 +367,13 @@ class OrderController extends Controller
             }
 
             DB::commit();
+
+            try {
+                Mail::to([$order->email, 'cypwebtechs@gmail.com'])
+                    ->send(new OrderInvoiceMail($order->load('items.product')));
+            } catch (\Throwable $e) {
+                \Log::error('Order invoice mail failed: ' . $e->getMessage());
+            }
 
             return redirect()->route('admin.orders.show', $order)
                              ->with('success', 'Order #' . $order->uuid . ' updated successfully!');

@@ -1,177 +1,205 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Invoice</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Confirmation</title>
 </head>
 
-<body style="margin:0; padding:0; background:#f5f5f5; font-family:Arial, sans-serif;">
+<body style="margin:0; padding:0; background:#eef0f2; font-family:Arial, Helvetica, sans-serif;">
 
-<div style="max-width:700px; margin:30px auto; background:#ffffff; padding:40px;">
+<div style="max-width:640px; margin:0 auto; background:#ffffff;">
 
-    <h1 style="margin:0 0 25px; color:#111;">
-        Sales Quotation for Order #{{ $order->uuid }}
-    </h1>
-
-    <p style="font-size:16px; color:#444;">
-        <strong>Hi {{ $order->name }},</strong><br><br>
-        Thank you for your order. Below are your order details:
-    </p>
-
-    <div style="background:#f3f4f6; padding:20px; margin:25px 0; border-left:4px solid #111827;">
-
-        <p style="margin:0 0 10px;">
-            <strong>Order ID:</strong> {{ $order->uuid }}
-        </p>
-
-        <p style="margin:0 0 10px;">
-            <strong>Date:</strong> {{ $order->created_at->format('d M, Y') }}
-        </p>
-
-        <p style="margin:0;">
-            <strong>Status:</strong> {{ ucfirst($order->status) }}
-        </p>
-
+    {{-- ── Header ── --}}
+    <div style="background:#0f1111; padding:20px 30px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+                <td style="color:#ffffff; font-size:18px; font-weight:bold; letter-spacing:0.5px;">
+                    {{ config('app.name') }}
+                </td>
+                <td align="right" style="color:#cccccc; font-size:12px;">
+                    Order Confirmed
+                </td>
+            </tr>
+        </table>
     </div>
 
-    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; margin-top:20px;">
+    {{-- ── Confirmation banner ── --}}
+    <div style="background:#067d62; padding:18px 30px;">
+        <p style="margin:0; color:#ffffff; font-size:16px; font-weight:bold;">
+            ✓ Thank you, {{ $order->name }}! Your order has been placed.
+        </p>
+        <p style="margin:4px 0 0; color:#d9f2ec; font-size:13px;">
+            We'll notify you once it ships.
+        </p>
+    </div>
 
-        <thead>
-            <tr style="background:#f9fafb;">
-                <th align="left"   style="padding:12px; border:1px solid #e5e7eb;">Product</th>
-                <th align="center" style="padding:12px; border:1px solid #e5e7eb;">Qty</th>
-                <th align="right"  style="padding:12px; border:1px solid #e5e7eb;">Unit Price (excl. GST)</th>
-                <th align="right"  style="padding:12px; border:1px solid #e5e7eb;">GST</th>
-                <th align="right"  style="padding:12px; border:1px solid #e5e7eb;">Unit Price (incl. GST)</th>
-                <th align="right"  style="padding:12px; border:1px solid #e5e7eb;">Subtotal</th>
-            </tr>
-        </thead>
-
-        <tbody>
-
-            @foreach ($order->items as $item)
-                @php
-                    $gstRate   = (float) ($item->product?->gst ?? 0);
-                    $exGstUnit = $gstRate > 0
-                        ? round($item->price / (1 + $gstRate / 100), 2)
-                        : $item->price;
-                    $gstUnit   = round($item->price - $exGstUnit, 2);
-                @endphp
-
-                <tr>
-
-                    <td style="padding:12px; border:1px solid #e5e7eb;">
-                        <strong>{{ $item->product->name ?? 'Product Deleted' }}</strong>
-                        <br>
-                        <span style="font-size:12px; color:#666;">
-                            SKU: {{ $item->product->code ?? 'N/A' }}
-                            @if ($item->productAttribute && $item->productAttribute->size)
-                                | Size: {{ $item->productAttribute->size }}
-                            @endif
-                        </span>
-                    </td>
-
-                    <td align="center" style="padding:12px; border:1px solid #e5e7eb;">
-                        {{ $item->quantity }}
-                    </td>
-
-                    <td align="right" style="padding:12px; border:1px solid #e5e7eb;">
-                        ₹{{ number_format($exGstUnit, 2) }}
-                    </td>
-
-                    <td align="right" style="padding:12px; border:1px solid #e5e7eb;">
-                        @if ($gstRate > 0)
-                            ₹{{ number_format($gstUnit, 2) }}
-                            <span style="font-size:11px; color:#666;">({{ $gstRate }}%)</span>
-                        @else
-                            —
-                        @endif
-                    </td>
-
-                    <td align="right" style="padding:12px; border:1px solid #e5e7eb;">
-                        ₹{{ number_format($item->price, 2) }}
-                    </td>
-
-                    <td align="right" style="padding:12px; border:1px solid #e5e7eb;">
-                        ₹{{ number_format($item->price * $item->quantity, 2) }}
-                    </td>
-
-                </tr>
-
-            @endforeach
-
-        </tbody>
-
+    {{-- ── Order meta strip ── --}}
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom:1px solid #e5e7eb;">
+        <tr>
+            <td style="padding:18px 30px; width:33%;">
+                <p style="margin:0; font-size:11px; color:#767676; text-transform:uppercase;">Order Number</p>
+                <p style="margin:3px 0 0; font-size:13px; color:#111; font-weight:bold;">{{ $order->uuid }}</p>
+            </td>
+            <td style="padding:18px 0; width:33%;">
+                <p style="margin:0; font-size:11px; color:#767676; text-transform:uppercase;">Order Date</p>
+                <p style="margin:3px 0 0; font-size:13px; color:#111; font-weight:bold;">{{ $order->created_at->format('d M, Y') }}</p>
+            </td>
+            <td style="padding:18px 30px; width:33%;">
+                <p style="margin:0; font-size:11px; color:#767676; text-transform:uppercase;">Status</p>
+                <p style="margin:3px 0 0; font-size:13px; color:#111; font-weight:bold;">{{ ucfirst($order->status) }}</p>
+            </td>
+        </tr>
     </table>
 
-    {{-- GST Summary --}}
+    {{-- ── Items ── --}}
+    <div style="padding:25px 30px 10px;">
+        <p style="margin:0 0 15px; font-size:14px; color:#111; font-weight:bold;">Order Summary</p>
+
+        @foreach ($order->items as $item)
+            <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom:1px solid #f0f0f0; padding-bottom:14px; margin-bottom:14px;">
+                <tr>
+                    <td style="vertical-align:top; padding-bottom:14px;">
+                        <p style="margin:0; font-size:14px; color:#111; font-weight:bold; line-height:1.4;">
+                            {{ $item->product->name ?? 'Product Deleted' }}
+                        </p>
+                        <p style="margin:4px 0 0; font-size:12px; color:#767676;">
+                            SKU: {{ $item->product->code ?? 'N/A' }}
+                            @if ($item->productAttribute && $item->productAttribute->size)
+                                &nbsp;|&nbsp; Size: {{ $item->productAttribute->size }}
+                            @endif
+                        </p>
+                        <p style="margin:4px 0 0; font-size:12px; color:#767676;">
+                            Qty: {{ $item->quantity }} &nbsp;×&nbsp; ₹{{ number_format($item->price, 2) }}
+                        </p>
+
+                        @if ($item->coupon_discount > 0 || $item->manual_discount_amount > 0)
+                            <p style="margin:6px 0 0; font-size:12px; color:#067d62;">
+                                @if ($item->coupon_discount > 0)
+                                    Coupon{{ $item->coupon ? ' ('.$item->coupon->code.')' : '' }} applied: −₹{{ number_format($item->coupon_discount, 2) }}<br>
+                                @endif
+                                @if ($item->manual_discount_amount > 0)
+                                    Discount applied: −₹{{ number_format($item->manual_discount_amount, 2) }}
+                                @endif
+                            </p>
+                        @endif
+                    </td>
+                    <td align="right" style="vertical-align:top; padding-bottom:14px; white-space:nowrap;">
+                        <p style="margin:0; font-size:14px; color:#111; font-weight:bold;">
+                            ₹{{ number_format($item->line_total, 2) }}
+                        </p>
+                        @if ($item->tax_amount > 0)
+                            <p style="margin:3px 0 0; font-size:11px; color:#767676;">
+                                incl. ₹{{ number_format($item->tax_amount, 2) }} GST
+                            </p>
+                        @endif
+                    </td>
+                </tr>
+            </table>
+        @endforeach
+    </div>
+
+    {{-- ── Price breakdown ── --}}
     @php
-        $orderTotalExGst = 0;
-        $orderTotalGst   = 0;
-        foreach ($order->items as $item) {
-            $rate         = (float) ($item->product?->gst ?? 0);
-            $exGstUnit    = $rate > 0 ? round($item->price / (1 + $rate / 100), 2) : $item->price;
-            $orderTotalExGst += round($exGstUnit * $item->quantity, 2);
-            $orderTotalGst   += round(($item->price - $exGstUnit) * $item->quantity, 2);
-        }
+        $itemsTotal = $order->items->sum('line_total');
     @endphp
 
-    <div style="margin-top:30px; text-align:right;">
+    <div style="padding:5px 30px 25px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f7f8f8; border-radius:6px; padding:18px;">
+            <tr><td colspan="2" style="padding:18px 18px 0;"></td></tr>
 
-        <p style="margin:5px 0; color:#444;">
-            <strong>Subtotal (excl. GST):</strong>
-            ₹{{ number_format($orderTotalExGst, 2) }}
-        </p>
+            <tr>
+                <td style="padding:0 18px 8px; font-size:13px; color:#444;">Subtotal (excl. GST)</td>
+                <td align="right" style="padding:0 18px 8px; font-size:13px; color:#444;">₹{{ number_format($order->subtotal_ex_gst, 2) }}</td>
+            </tr>
 
-        @if ($orderTotalGst > 0)
-            <p style="margin:5px 0; color:#444;">
-                <strong>GST:</strong>
-                ₹{{ number_format($orderTotalGst, 2) }}
-            </p>
-        @endif
+            @if ($order->coupon_discount > 0)
+                <tr>
+                    <td style="padding:0 18px 8px; font-size:13px; color:#067d62;">Coupon Discount</td>
+                    <td align="right" style="padding:0 18px 8px; font-size:13px; color:#067d62;">−₹{{ number_format($order->coupon_discount, 2) }}</td>
+                </tr>
+            @endif
 
-        <p style="margin:5px 0; color:#444;">
-            <strong>Shipping:</strong>
-            ₹{{ number_format($order->shipping_charge, 2) }}
-        </p>
+            @if ($order->manual_discount > 0)
+                <tr>
+                    <td style="padding:0 18px 8px; font-size:13px; color:#067d62;">Manual Discount</td>
+                    <td align="right" style="padding:0 18px 8px; font-size:13px; color:#067d62;">−₹{{ number_format($order->manual_discount, 2) }}</td>
+                </tr>
+            @endif
 
-        <p style="margin:10px 0 5px; font-size:20px; border-top:2px solid #e5e7eb; padding-top:10px;">
-            <strong>Total (incl. GST):</strong>
-            ₹{{ number_format($order->total + $order->shipping_charge, 2) }}
-        </p>
+            <tr>
+                <td style="padding:0 18px 8px; font-size:13px; color:#444;">Taxable Value</td>
+                <td align="right" style="padding:0 18px 8px; font-size:13px; color:#444;">₹{{ number_format($order->taxable_value, 2) }}</td>
+            </tr>
 
-        @if ($orderTotalGst > 0)
-            <p style="margin:4px 0; font-size:12px; color:#666;">
-                (Includes ₹{{ number_format($orderTotalGst, 2) }} GST)
-            </p>
-        @endif
+            <tr>
+                <td style="padding:0 18px 8px; font-size:13px; color:#444;">GST</td>
+                <td align="right" style="padding:0 18px 8px; font-size:13px; color:#444;">₹{{ number_format($order->tax_amount, 2) }}</td>
+            </tr>
 
+            <tr>
+                <td style="padding:0 18px 8px; font-size:13px; color:#444;">
+                    Shipping
+                    @if ($order->shipping_charge_gst > 0)
+                        <span style="color:#999;">(incl. ₹{{ number_format($order->shipping_charge_gst, 2) }} GST)</span>
+                    @endif
+                </td>
+                <td align="right" style="padding:0 18px 8px; font-size:13px; color:#444;">₹{{ number_format($order->shipping_charge + $order->shipping_charge_gst, 2) }}</td>
+            </tr>
+
+            <tr>
+                <td colspan="2" style="padding:10px 18px 0; border-top:1px solid #e0e0e0;"></td>
+            </tr>
+
+            <tr>
+                <td style="padding:10px 18px 18px; font-size:16px; color:#111; font-weight:bold;">Order Total</td>
+                <td align="right" style="padding:10px 18px 18px; font-size:16px; color:#111; font-weight:bold;">₹{{ number_format($order->total, 2) }}</td>
+            </tr>
+        </table>
     </div>
 
-    <div style="margin-top:35px; text-align:center;">
+    {{-- ── Delivery address ── --}}
+    <div style="padding:0 30px 25px;">
+        <p style="margin:0 0 8px; font-size:14px; color:#111; font-weight:bold;">Delivery Address</p>
+        <p style="margin:0; font-size:13px; color:#444; line-height:1.6;">
+            {{ $order->name }}<br>
+            {{ $order->address }}@if($order->locality), {{ $order->locality }}@endif<br>
+            @if($order->city || $order->state || $order->zipcode)
+                {{ $order->city }}@if($order->city && $order->state), @endif{{ $order->state }} {{ $order->zipcode }}<br>
+            @endif
+            Mobile: {{ $order->mobile }}
+        </p>
+    </div>
 
+    {{-- ── CTA ── --}}
+    <div style="padding:0 30px 35px; text-align:center;">
         <a href="{{ route('order.confirmation', $order) }}"
            style="display:inline-block;
-                  background:#111827;
+                  background:#0f1111;
                   color:#ffffff;
-                  padding:14px 30px;
+                  padding:13px 36px;
                   text-decoration:none;
                   border-radius:6px;
+                  font-size:14px;
                   font-weight:bold;">
-            View Order
+            View Order Details
         </a>
-
     </div>
 
-    <p style="margin-top:40px; color:#666; line-height:1.7;">
-        If you have any questions, feel free to reach out.
-    </p>
-
-    <p style="margin-top:25px; color:#111;">
-        Thanks,<br>
-        {{ config('app.name') }}<br>
-        <a href="mailto:order@everwearindustries.com">order@everwearindustries.com</a>
-    </p>
+    {{-- ── Footer ── --}}
+    <div style="background:#f3f4f6; padding:22px 30px; border-top:1px solid #e5e7eb;">
+        <p style="margin:0 0 6px; font-size:12px; color:#767676; line-height:1.6;">
+            Questions about your order? Contact us anytime.
+        </p>
+        <p style="margin:0; font-size:12px; color:#111;">
+            <a href="mailto:order@everwearindustries.com" style="color:#0f1111; text-decoration:none; font-weight:bold;">
+                order@everwearindustries.com
+            </a>
+        </p>
+        <p style="margin:14px 0 0; font-size:11px; color:#999;">
+            &copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.
+        </p>
+    </div>
 
 </div>
 
