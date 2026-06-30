@@ -39,7 +39,7 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body d-flex align-items-center gap-3">
                     <div class="rounded-3 p-3 bg-primary bg-opacity-10 text-primary">
-                        <i class="bx bx-ticket-perforated fs-4"></i>
+                        <i class="bx bx-purchase-tag-alt fs-4 text-white"></i>
                     </div>
                     <div>
                         <div class="fs-4 fw-bold lh-1">{{ $total }}</div>
@@ -52,7 +52,7 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body d-flex align-items-center gap-3">
                     <div class="rounded-3 p-3 bg-success bg-opacity-10 text-success">
-                        <i class="bx bx-check-circle fs-4"></i>
+                        <i class="bx bx-check-circle fs-4 text-white"></i>
                     </div>
                     <div>
                         <div class="fs-4 fw-bold lh-1">{{ $active }}</div>
@@ -65,7 +65,7 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body d-flex align-items-center gap-3">
                     <div class="rounded-3 p-3 bg-danger bg-opacity-10 text-danger">
-                        <i class="bx bx-clock-history fs-4"></i>
+                        <i class="bx bx-time-five fs-4 text-white"></i>
                     </div>
                     <div>
                         <div class="fs-4 fw-bold lh-1">{{ $expired }}</div>
@@ -78,7 +78,7 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body d-flex align-items-center gap-3">
                     <div class="rounded-3 p-3 bg-warning bg-opacity-10 text-warning">
-                        <i class="bx bx-bar-chart-line fs-4"></i>
+                        <i class="bx bx-trending-up fs-4 text-white"></i>
                     </div>
                     <div>
                         <div class="fs-4 fw-bold lh-1">{{ $coupons->sum('used_count') }}</div>
