@@ -89,7 +89,7 @@
 
         <li class="menu-item {{ request()->routeIs('admin.coupons.*') ? 'active open' : '' }}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-diamond"></i> 
+                <i class="menu-icon tf-icons bx bx-purchase-tag-alt"></i> 
                 <div data-i18n="coupons">Coupon Master</div>
             </a>
             <ul class="menu-sub">
