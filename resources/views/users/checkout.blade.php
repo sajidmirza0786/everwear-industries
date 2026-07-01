@@ -376,7 +376,8 @@
                                 <input type="text" class="coupon-input coupon-code-input" placeholder="Enter coupon code" maxlength="50">
                                 <button type="button" class="coupon-apply-btn coupon-apply-btn-trigger">Apply</button>
                             </div>
-                            {{-- <div class="coupon-msg coupon-msg-target"></div>
+                            {{-- ── Browse-coupons link kept for later re-enable — logic untouched, just hidden ──
+                            <div class="coupon-msg coupon-msg-target"></div>
                             <button type="button" class="coupon-browse-link coupon-browse-trigger">
                                 <i class="bi bi-tag"></i> View available coupons
                             </button> --}}
@@ -501,10 +502,12 @@
                                     <input type="text" class="coupon-input coupon-code-input" placeholder="Enter coupon code" maxlength="50">
                                     <button type="button" class="coupon-apply-btn coupon-apply-btn-trigger">Apply</button>
                                 </div>
+                                {{-- ── Browse-coupons link kept for later re-enable — logic untouched, just hidden ──
+                                     (matches the desktop box above — both commented the same way)
                                 <div class="coupon-msg coupon-msg-target"></div>
                                 <button type="button" class="coupon-browse-link coupon-browse-trigger">
                                     <i class="bi bi-tag"></i> View available coupons
-                                </button>
+                                </button> --}}
                             </div>
                             <div id="couponAppliedStateMobile" style="display:none;">
                                 <div class="coupon-applied-row">
@@ -640,6 +643,14 @@
          a coupon is applied/removed, so the UI never goes stale. The actual
          authoritative discount + total is always recalculated server-side
          again inside CheckoutController@store before the order is created.
+
+         NOTE: the "View available coupons" trigger + inline message element
+         are currently commented out in the markup on BOTH the desktop and
+         mobile coupon boxes (by request). All of that logic below (modal,
+         loadCoupons, browse/message wiring) is left fully intact and will
+         "just work" again the moment those markup blocks are uncommented —
+         every DOM lookup below is null-guarded so nothing throws in the
+         meantime and the Apply / Remove flow keeps working normally.
     ════════════════════════════════════════════════════════════════════ --}}
     <script>
     (function () {
@@ -696,16 +707,23 @@
             const appliedState = document.getElementById(appliedStateId);
             const input        = box.querySelector('.coupon-code-input');
             const applyBtn     = box.querySelector('.coupon-apply-btn-trigger');
+            // The next two are currently commented out in the markup (both desktop
+            // and mobile), so these will be null until re-enabled. Every usage
+            // below is null-guarded on purpose — do not remove the guards.
             const msgEl        = box.querySelector('.coupon-msg-target');
             const browseBtn    = box.querySelector('.coupon-browse-trigger');
             const removeBtn    = box.querySelector('.coupon-remove-trigger');
 
             function showMessage(text, type) {
+                if (!msgEl) return;
                 msgEl.textContent = text;
                 msgEl.className = 'coupon-msg coupon-msg-target ' + type;
                 msgEl.style.display = 'block';
             }
-            function clearMessage() { msgEl.style.display = 'none'; }
+            function clearMessage() {
+                if (!msgEl) return;
+                msgEl.style.display = 'none';
+            }
 
             function setAppliedUI(data) {
                 box.querySelector('.applied-code-target').textContent = data.code;
@@ -782,19 +800,23 @@
                 if (e.key === 'Enter') { e.preventDefault(); applyCode(input.value.trim()); }
             });
 
-            removeBtn.addEventListener('click', async () => {
-                removeBtn.disabled = true;
-                try {
-                    await fetch('{{ route("checkout.coupon.remove") }}', {
-                        method: 'POST',
-                        headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                    });
-                } catch (e) { /* ignore */ }
-                resetUI();
-                removeBtn.disabled = false;
-            });
+            if (removeBtn) {
+                removeBtn.addEventListener('click', async () => {
+                    removeBtn.disabled = true;
+                    try {
+                        await fetch('{{ route("checkout.coupon.remove") }}', {
+                            method: 'POST',
+                            headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                        });
+                    } catch (e) { /* ignore */ }
+                    resetUI();
+                    removeBtn.disabled = false;
+                });
+            }
 
-            browseBtn.addEventListener('click', openModal);
+            if (browseBtn) {
+                browseBtn.addEventListener('click', openModal);
+            }
 
             // Expose apply function so the modal's "Apply" buttons can trigger it
             box.__applyCode = applyCode;
@@ -834,7 +856,8 @@
         wireCouponBox('couponBoxDesktop', 'couponFormStateDesktop', 'couponAppliedStateDesktop');
         wireCouponBox('couponBoxMobile', 'couponFormStateMobile', 'couponAppliedStateMobile');
 
-        // ── Modal ──
+        // ── Modal (fully intact — just currently unreachable since both
+        //     browse-trigger buttons are commented out in the markup) ──
         function openModal() { modalOverlay.classList.add('open'); loadCoupons(); }
         function closeModal() { modalOverlay.classList.remove('open'); }
 
