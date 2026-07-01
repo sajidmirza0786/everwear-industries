@@ -115,7 +115,6 @@ class CheckoutController extends Controller
     //   ✓ Cart must be non-empty before accepting a coupon
     //   ✓ Coupon never incremented here — only on final order commit
     // ══════════════════════════════════════════════════════════════════════════════
-
     public function applyCoupon(Request $request): \Illuminate\Http\JsonResponse
     {
         $request->validate(['code' => 'required|string|max:50']);
@@ -158,52 +157,78 @@ class CheckoutController extends Controller
             ], 422);
         }
 
-        // ── 4. Compute ex-GST subtotal across applicable items ─────────────────
+        // ── 4. Find applicable items & validate per-item line total ───────────
+        //
+        // For each cart item:
+        //   - Check if coupon applies to that product / category
+        //   - Compute ex-GST line total = (unit_price_ex_gst × qty)
+        //   - Validate that line total against coupon min/max constraints
+        //   - Accumulate eligible line totals for discount calculation
+        //   - At least 1 eligible item (qty >= 1) must exist, else error
+        // ─────────────────────────────────────────────────────────────────────
         $applicableExGstSubtotal = 0.0;
-        $totalExGstSubtotal      = 0.0;
+        $eligibleItemCount       = 0;
+        $belowMinItems           = 0;
+        $aboveMaxItems           = 0;
 
         foreach ($cartItems as $item) {
             $product = \App\Models\Product::find($item->product_id);
             if (! $product) continue;
 
-            $gstRate    = (float) ($product->gst ?? 0);
-            $price      = (float) $item->price;
-            $qty        = (int)   $item->quantity;
-            $priceExGst = $gstRate > 0 ? $price / (1 + $gstRate / 100) : $price;
-            $lineExGst  = round($priceExGst * $qty, 4);
+            // Does this coupon target this product / category?
+            if (! $coupon->appliesToProduct($product)) continue;
 
-            $totalExGstSubtotal += $lineExGst;
+            $gstRate        = (float) ($product->gst ?? 0);
+            $price          = (float) $item->price;
+            $qty            = (int)   $item->quantity;
 
-            if ($coupon->appliesToProduct($product)) {
-                $applicableExGstSubtotal += $lineExGst;
+            // Ex-GST unit price
+            $unitPriceExGst = $gstRate > 0 ? $price / (1 + $gstRate / 100) : $price;
+
+            // Line total = ex-GST unit price × quantity
+            $lineExGst = round($unitPriceExGst * $qty, 4);
+
+            // ── Min/max check on line total ────────────────────────────────────
+            if ($coupon->min_order_amount && $lineExGst < (float) $coupon->min_order_amount) {
+                $belowMinItems++;
+                continue;
             }
+
+            if ($coupon->max_order_amount && $lineExGst > (float) $coupon->max_order_amount) {
+                $aboveMaxItems++;
+                continue;
+            }
+
+            // Item passed all checks — accumulate for discount calculation
+            $applicableExGstSubtotal += $lineExGst;
+            $eligibleItemCount++;
         }
 
-        // ── 5. Min / max order constraints (on ex-GST subtotal) ───────────────
-        if ($coupon->min_order_amount && $totalExGstSubtotal < (float) $coupon->min_order_amount) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Your order total is below the minimum of ₹' .
-                            number_format($coupon->min_order_amount, 2) . ' required for this coupon.',
-            ], 422);
-        }
+        // ── 5. At least 1 eligible item must exist ─────────────────────────────
+        if ($eligibleItemCount === 0) {
+            if ($belowMinItems > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No item in your cart meets the minimum order amount of ₹' .
+                                number_format($coupon->min_order_amount, 2) . ' (ex-GST) required for this coupon.',
+                ], 422);
+            }
 
-        if ($coupon->max_order_amount && $totalExGstSubtotal > (float) $coupon->max_order_amount) {
-            return response()->json([
-                'success' => false,
-                'message' => 'This coupon is only valid for orders up to ₹' .
-                            number_format($coupon->max_order_amount, 2) . '.',
-            ], 422);
-        }
+            if ($aboveMaxItems > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No item in your cart is within the maximum order amount of ₹' .
+                                number_format($coupon->max_order_amount, 2) . ' (ex-GST) allowed for this coupon.',
+                ], 422);
+            }
 
-        if ($applicableExGstSubtotal <= 0) {
             return response()->json([
                 'success' => false,
                 'message' => 'This coupon is not applicable to any item in your cart.',
             ], 422);
         }
 
-        // ── 6. Calculate discount on applicable ex-GST amount ─────────────────
+        // ── 6. Calculate discount on applicable ex-GST subtotal ───────────────
         $discountExGst = $coupon->calculateDiscount($applicableExGstSubtotal);
 
         if ($discountExGst <= 0) {
@@ -496,8 +521,16 @@ class CheckoutController extends Controller
                 $price   = (float) $item->price;
                 $qty     = (int)   $item->quantity;
 
-                $priceExGst    = $gstRate > 0 ? round($price / (1 + $gstRate / 100), 6) : $price;
-                $lineExGst     = round($priceExGst * $qty, 4);
+                $priceExGst = $gstRate > 0 ? round($price / (1 + $gstRate / 100), 6) : $price;
+                $lineExGst  = round($priceExGst * $qty, 4);
+
+                // ── Mirror the SAME eligibility logic as applyCoupon() ────────────────
+                $eligible = false;
+                if ($resolvedCoupon && $resolvedCoupon->appliesToProduct($product)) {
+                    $passesMin = ! $resolvedCoupon->min_order_amount || $lineExGst >= (float) $resolvedCoupon->min_order_amount;
+                    $passesMax = ! $resolvedCoupon->max_order_amount || $lineExGst <= (float) $resolvedCoupon->max_order_amount;
+                    $eligible  = $passesMin && $passesMax;
+                }
 
                 $itemGstData[] = [
                     'item'        => $item,
@@ -506,10 +539,10 @@ class CheckoutController extends Controller
                     'price'       => $price,
                     'qty'         => $qty,
                     'line_ex_gst' => $lineExGst,
-                    'applicable'  => $resolvedCoupon ? $resolvedCoupon->appliesToProduct($product) : false,
+                    'applicable'  => $eligible,   // ← was: $resolvedCoupon->appliesToProduct($product)
                 ];
 
-                if ($resolvedCoupon && $resolvedCoupon->appliesToProduct($product)) {
+                if ($eligible) {
                     $applicableExGstTotal += $lineExGst;
                 }
             }
@@ -634,12 +667,12 @@ class CheckoutController extends Controller
             DB::commit();
 
             // ── Send invoice ───────────────────────────────────────────────────
-            try {
-                Mail::to([$order->email, 'order@everwearindustries.com'])
-                    ->send(new OrderInvoiceMail($order->load('items.product')));
-            } catch (\Throwable $e) {
-                \Log::error('Order invoice mail failed: ' . $e->getMessage());
-            }
+            // try {
+            //     Mail::to([$order->email, 'order@everwearindustries.com'])
+            //         ->send(new OrderInvoiceMail($order->load('items.product')));
+            // } catch (\Throwable $e) {
+            //     \Log::error('Order invoice mail failed: ' . $e->getMessage());
+            // }
 
             return redirect()->route('order.confirmation', $order)
                 ->with('success', 'Order placed successfully!');
