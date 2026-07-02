@@ -103,86 +103,254 @@
             padding: 14px 16px;
             margin-bottom: 28px;
         }
+
         .coupon-box.applied {
             border-style: solid;
             border-color: var(--accent);
             background: var(--surface);
         }
-        .coupon-row { display: flex; gap: 8px; }
-        .coupon-input {
-            flex: 1; height: 40px; border: 1px solid var(--line-strong);
-            background: var(--bg); padding: 0 12px; font-size: 13px;
-            text-transform: uppercase; letter-spacing: 0.04em;
-        }
-        .coupon-input:focus { outline: none; border-color: var(--accent); }
-        .coupon-apply-btn {
-            height: 40px; padding: 0 18px; border: 1px solid var(--ink);
-            background: var(--ink); color: var(--bg);
-            font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
-            font-weight: 600; cursor: pointer; white-space: nowrap;
-        }
-        .coupon-apply-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .coupon-browse-link {
-            display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
-            font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
-            color: var(--accent-2); background: none; border: none; padding: 0;
-            cursor: pointer; font-weight: 600;
-        }
-        .coupon-browse-link:hover { text-decoration: underline; }
-        .coupon-msg { font-size: 12px; margin-top: 8px; display: none; }
-        .coupon-msg.error   { color: #b3261e; }
-        .coupon-msg.success { color: #1e7a4a; }
 
-        .coupon-applied-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-        .coupon-applied-code { font-weight: 600; font-size: 13px; letter-spacing: 0.04em; color: var(--ink); }
-        .coupon-applied-desc { font-size: 11px; color: var(--soft); margin-top: 2px; }
-        .coupon-applied-save { font-size: 12px; font-weight: 600; color: #1e7a4a; margin-top: 4px; }
-        .coupon-remove-btn {
-            background: none; border: none; color: var(--soft); cursor: pointer;
-            font-size: 16px; line-height: 1; padding: 2px;
+        .coupon-row {
+            display: flex;
+            gap: 8px;
         }
-        .coupon-remove-btn:hover { color: #b3261e; }
+
+        .coupon-input {
+            flex: 1;
+            height: 40px;
+            border: 1px solid var(--line-strong);
+            background: var(--bg);
+            padding: 0 12px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .coupon-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .coupon-apply-btn {
+            height: 40px;
+            padding: 0 18px;
+            border: 1px solid var(--ink);
+            background: var(--ink);
+            color: var(--bg);
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .coupon-apply-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .coupon-browse-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 10px;
+            font-size: 11px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--accent-2);
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .coupon-browse-link:hover {
+            text-decoration: underline;
+        }
+
+        .coupon-msg {
+            font-size: 12px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .coupon-msg.error {
+            color: #b3261e;
+        }
+
+        .coupon-msg.success {
+            color: #1e7a4a;
+        }
+
+        .coupon-applied-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .coupon-applied-code {
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 0.04em;
+            color: var(--ink);
+        }
+
+        .coupon-applied-desc {
+            font-size: 11px;
+            color: var(--soft);
+            margin-top: 2px;
+        }
+
+        .coupon-applied-save {
+            font-size: 12px;
+            font-weight: 600;
+            color: #1e7a4a;
+            margin-top: 4px;
+        }
+
+        .coupon-remove-btn {
+            background: none;
+            border: none;
+            color: var(--soft);
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            padding: 2px;
+        }
+
+        .coupon-remove-btn:hover {
+            color: #b3261e;
+        }
 
         /* Summary discount row */
-        .row-line.discount span:last-child { color: #1e7a4a; }
+        .row-line.discount span:last-child {
+            color: #1e7a4a;
+        }
 
         /* Modal */
         .coupon-modal-overlay {
-            position: fixed; inset: 0; background: rgba(26,20,16,.45);
-            display: none; align-items: flex-end; justify-content: center; z-index: 1080;
+            position: fixed;
+            inset: 0;
+            background: rgba(26, 20, 16, .45);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 1080;
         }
-        .coupon-modal-overlay.open { display: flex; }
+
+        .coupon-modal-overlay.open {
+            display: flex;
+        }
+
         .coupon-modal {
-            background: var(--bg); width: 100%; max-width: 480px;
-            max-height: 78vh; display: flex; flex-direction: column;
+            background: var(--bg);
+            width: 100%;
+            max-width: 480px;
+            max-height: 78vh;
+            display: flex;
+            flex-direction: column;
             border: 1px solid var(--line-strong);
         }
-        @media (min-width: 768px) { .coupon-modal-overlay { align-items: center; } }
+
+        @media (min-width: 768px) {
+            .coupon-modal-overlay {
+                align-items: center;
+            }
+        }
+
         .coupon-modal-header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 16px 18px; border-bottom: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--line);
         }
-        .coupon-modal-title { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
-        .coupon-modal-close { background: none; border: none; font-size: 18px; color: var(--soft); cursor: pointer; }
-        .coupon-modal-body { overflow-y: auto; flex: 1; }
+
+        .coupon-modal-title {
+            font-size: 13px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .coupon-modal-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: var(--soft);
+            cursor: pointer;
+        }
+
+        .coupon-modal-body {
+            overflow-y: auto;
+            flex: 1;
+        }
+
         .coupon-list-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 14px 18px; border-bottom: 1px solid var(--line); gap: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--line);
+            gap: 12px;
         }
-        .coupon-list-code { font-weight: 600; font-size: 13px; letter-spacing: 0.03em; }
-        .coupon-list-desc { font-size: 11px; color: var(--soft); margin-top: 2px; }
-        .coupon-list-meta { font-size: 10px; color: var(--soft-2); margin-top: 3px; }
+
+        .coupon-list-code {
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 0.03em;
+        }
+
+        .coupon-list-desc {
+            font-size: 11px;
+            color: var(--soft);
+            margin-top: 2px;
+        }
+
+        .coupon-list-meta {
+            font-size: 10px;
+            color: var(--soft-2);
+            margin-top: 3px;
+        }
+
         .coupon-list-badge {
-            background: var(--surface); border: 1px solid var(--accent); color: var(--accent-2);
-            font-size: 10px; font-weight: 700; letter-spacing: 0.04em; padding: 4px 8px;
+            background: var(--surface);
+            border: 1px solid var(--accent);
+            color: var(--accent-2);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            padding: 4px 8px;
         }
+
         .coupon-list-use-btn {
-            font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600;
-            color: var(--ink); background: none; border: 1px solid var(--line-strong);
-            padding: 6px 10px; cursor: pointer; white-space: nowrap;
+            font-size: 10px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: var(--ink);
+            background: none;
+            border: 1px solid var(--line-strong);
+            padding: 6px 10px;
+            cursor: pointer;
+            white-space: nowrap;
         }
-        .coupon-list-use-btn:hover { background: var(--ink); color: var(--bg); }
-        .coupon-modal-empty, .coupon-modal-loading { padding: 40px 18px; text-align: center; color: var(--soft-2); font-size: 13px; }
+
+        .coupon-list-use-btn:hover {
+            background: var(--ink);
+            color: var(--bg);
+        }
+
+        .coupon-modal-empty,
+        .coupon-modal-loading {
+            padding: 40px 18px;
+            text-align: center;
+            color: var(--soft-2);
+            font-size: 13px;
+        }
     </style>
 
     <div class="container py-4">
@@ -328,25 +496,28 @@
                     {{-- Items list --}}
                     @forelse($cartItems as $item)
                         @php
-                            $product      = isset($item->product)
+                            $product = isset($item->product)
                                 ? $item->product
                                 : \App\Models\Product::find($item->product_id);
-                            $atrId        = $item->product_attribute_id ?? null;
-                            $atr          = $atrId ? \App\Models\ProductAttribute::find($atrId) : null;
+                            $atrId = $item->product_attribute_id ?? null;
+                            $atr = $atrId ? \App\Models\ProductAttribute::find($atrId) : null;
                             $variantLabel = $atr ? $atr->size : null;
-                            $itemTotal    = $item->quantity * $item->price; // GST-inclusive line total (excl. shipping)
+                            $itemTotal = $item->quantity * $item->price; // GST-inclusive line total (excl. shipping)
                         @endphp
                         @if (!$product)
                             @continue
                         @endif
-                        <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);">
+                        <div
+                            style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);">
                             <div style="flex:1;min-width:0;">
-                                <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                <div
+                                    style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                                     {{ $product->name }}
                                 </div>
                                 @if ($variantLabel)
                                     <div style="margin-top:3px;">
-                                        <span style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2);background:rgba(0,0,0,.05);border:1px solid var(--line-strong);padding:1px 7px;border-radius:2px;">
+                                        <span
+                                            style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2);background:rgba(0,0,0,.05);border:1px solid var(--line-strong);padding:1px 7px;border-radius:2px;">
                                             {{ $variantLabel }}
                                         </span>
                                     </div>
@@ -366,18 +537,20 @@
                             </div>
                         </div>
                     @empty
-                        <div style="text-align:center;padding:24px 0;color:var(--soft);font-size:14px;">Your cart is empty.</div>
+                        <div style="text-align:center;padding:24px 0;color:var(--soft);font-size:14px;">Your cart is empty.
+                        </div>
                     @endforelse
 
                     {{-- ── Coupon box (desktop) ── --}}
                     <div class="coupon-box mt-3" id="couponBoxDesktop" data-variant="desktop">
                         <div id="couponFormStateDesktop">
                             <div class="coupon-row">
-                                <input type="text" class="coupon-input coupon-code-input" placeholder="Enter coupon code" maxlength="50">
+                                <input type="text" class="coupon-input coupon-code-input"
+                                    placeholder="Enter coupon code" maxlength="50">
                                 <button type="button" class="coupon-apply-btn coupon-apply-btn-trigger">Apply</button>
                             </div>
-                            {{-- ── Browse-coupons link kept for later re-enable — logic untouched, just hidden ──
                             <div class="coupon-msg coupon-msg-target"></div>
+                            {{-- ── Browse-coupons link kept for later re-enable — logic untouched, just hidden ──
                             <button type="button" class="coupon-browse-link coupon-browse-trigger">
                                 <i class="bi bi-tag"></i> View available coupons
                             </button> --}}
@@ -389,7 +562,8 @@
                                     <div class="coupon-applied-desc applied-desc-target"></div>
                                     <div class="coupon-applied-save applied-save-target"></div>
                                 </div>
-                                <button type="button" class="coupon-remove-btn coupon-remove-trigger" title="Remove coupon">
+                                <button type="button" class="coupon-remove-btn coupon-remove-trigger"
+                                    title="Remove coupon">
                                     <i class="bi bi-x-lg"></i>
                                 </button>
                             </div>
@@ -401,19 +575,9 @@
                         <span style="color:var(--soft);font-size:14px;">
                             Subtotal <span style="font-size:11px;">(excl. GST)</span>
                         </span>
-                        <span style="font-size:14px;" data-total="subtotalExGst">₹{{ number_format($totalExGst, 2) }}</span>
+                        <span style="font-size:14px;"
+                            data-total="subtotalExGst">₹{{ number_format($totalExGst, 2) }}</span>
                     </div>
-
-                    @if ($totalGst > 0)
-                        <div class="row-line">
-                            <span style="color:var(--soft);font-size:14px;">
-                                GST
-                                <i class="bi bi-info-circle" style="font-size:11px;cursor:help;"
-                                   title="Goods & Services Tax included in your order"></i>
-                            </span>
-                            <span style="font-size:14px;" data-total="gst">₹{{ number_format($totalGst, 2) }}</span>
-                        </div>
-                    @endif
 
                     {{-- Discount row — hidden until a coupon is applied --}}
                     <div class="row-line discount" id="discountRowDesktop" style="display:none;">
@@ -423,20 +587,34 @@
                         <span style="font-size:14px;" id="discountAmountDesktop">−₹0.00</span>
                     </div>
 
+                    @if ($totalGst > 0)
+                        <div class="row-line">
+                            <span style="color:var(--soft);font-size:14px;">
+                                GST
+                                <i class="bi bi-info-circle" style="font-size:11px;cursor:help;"
+                                    title="Goods & Services Tax included in your order"></i>
+                            </span>
+                            <span style="font-size:14px;" data-total="gst">₹{{ number_format($totalGst, 2) }}</span>
+                        </div>
+                    @endif
+
                     <div class="row-line">
                         <span style="color:var(--soft);font-size:14px;">Shipping</span>
-                        <span style="font-size:14px;" data-total="shipping">₹{{ number_format($totalShipping, 2) }}</span>
+                        <span style="font-size:14px;"
+                            data-total="shipping">₹{{ number_format($totalShipping, 2) }}</span>
                     </div>
 
                     <div style="border-top:1px solid var(--line-strong);margin:8px 0;"></div>
 
                     <div class="row-line total">
-                        <span>Total <span style="font-size:11px;font-weight:400;color:var(--soft);">(incl. GST)</span></span>
+                        <span>Total <span style="font-size:11px;font-weight:400;color:var(--soft);">(incl.
+                                GST)</span></span>
                         <span id="grandTotalDesktop">₹{{ number_format($total + $totalShipping, 2) }}</span>
                     </div>
 
                     @if ($totalGst > 0)
-                        <p style="font-size:11px;color:var(--soft-2);text-align:right;margin-top:4px;letter-spacing:.04em;">
+                        <p
+                            style="font-size:11px;color:var(--soft-2);text-align:right;margin-top:4px;letter-spacing:.04em;">
                             ₹{{ number_format($totalGst, 2) }} GST included in total
                         </p>
                     @endif
@@ -450,7 +628,8 @@
                         <span>
                             <i class="bi bi-bag me-2" style="color:var(--accent);"></i>
                             Show order summary
-                            <strong style="margin-left:8px;" id="mobileSummaryTotalLabel">₹{{ number_format($total + $totalShipping, 2) }}</strong>
+                            <strong style="margin-left:8px;"
+                                id="mobileSummaryTotalLabel">₹{{ number_format($total + $totalShipping, 2) }}</strong>
                         </span>
                         <i class="bi bi-chevron-down toggle-icon"
                             style="transition:transform 0.2s;font-size:14px;color:var(--soft);"></i>
@@ -461,22 +640,24 @@
                         {{-- Items --}}
                         @forelse($cartItems as $item)
                             @php
-                                $product      = isset($item->product)
+                                $product = isset($item->product)
                                     ? $item->product
                                     : \App\Models\Product::find($item->product_id);
-                                $atrId        = $item->product_attribute_id ?? null;
-                                $atr          = $atrId ? \App\Models\ProductAttribute::find($atrId) : null;
+                                $atrId = $item->product_attribute_id ?? null;
+                                $atr = $atrId ? \App\Models\ProductAttribute::find($atrId) : null;
                                 $variantLabel = $atr ? $atr->size : null;
-                                $itemTotal    = $item->quantity * $item->price;
+                                $itemTotal = $item->quantity * $item->price;
                             @endphp
                             @if (!$product)
                                 @continue
                             @endif
-                            <div style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;">
+                            <div
+                                style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;">
                                 <div>
                                     <div style="font-weight:500;">{{ $product->name }}</div>
                                     @if ($variantLabel)
-                                        <span style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2);background:rgba(0,0,0,.05);border:1px solid var(--line-strong);padding:1px 7px;border-radius:2px;display:inline-block;margin-top:2px;">
+                                        <span
+                                            style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2);background:rgba(0,0,0,.05);border:1px solid var(--line-strong);padding:1px 7px;border-radius:2px;display:inline-block;margin-top:2px;">
                                             {{ $variantLabel }}
                                         </span>
                                     @endif
@@ -502,9 +683,9 @@
                                     <input type="text" class="coupon-input coupon-code-input" placeholder="Enter coupon code" maxlength="50">
                                     <button type="button" class="coupon-apply-btn coupon-apply-btn-trigger">Apply</button>
                                 </div>
-                                {{-- ── Browse-coupons link kept for later re-enable — logic untouched, just hidden ──
-                                     (matches the desktop box above — both commented the same way)
                                 <div class="coupon-msg coupon-msg-target"></div>
+                                {{-- ── Browse-coupons link kept for later re-enable — logic untouched, just hidden ──
+                                    (matches the desktop box above — both commented the same way)
                                 <button type="button" class="coupon-browse-link coupon-browse-trigger">
                                     <i class="bi bi-tag"></i> View available coupons
                                 </button> --}}
@@ -516,7 +697,8 @@
                                         <div class="coupon-applied-desc applied-desc-target"></div>
                                         <div class="coupon-applied-save applied-save-target"></div>
                                     </div>
-                                    <button type="button" class="coupon-remove-btn coupon-remove-trigger" title="Remove coupon">
+                                    <button type="button" class="coupon-remove-btn coupon-remove-trigger"
+                                        title="Remove coupon">
                                         <i class="bi bi-x-lg"></i>
                                     </button>
                                 </div>
@@ -524,34 +706,40 @@
                         </div>
 
                         {{-- Subtotal (ex-GST) --}}
-                        <div style="display:flex;justify-content:space-between;padding:10px 0 4px;font-size:13px;color:var(--soft);">
+                        <div
+                            style="display:flex;justify-content:space-between;padding:10px 0 4px;font-size:13px;color:var(--soft);">
                             <span>Subtotal <span style="font-size:11px;">(excl. GST)</span></span>
                             <span data-total="subtotalExGst">₹{{ number_format($totalExGst, 2) }}</span>
                         </div>
 
                         {{-- GST row --}}
                         @if ($totalGst > 0)
-                            <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:var(--soft);">
+                            <div
+                                style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:var(--soft);">
                                 <span>GST</span>
                                 <span data-total="gst">₹{{ number_format($totalGst, 2) }}</span>
                             </div>
                         @endif
 
                         {{-- Discount row (mobile) --}}
-                        <div style="display:none;justify-content:space-between;padding:4px 0;font-size:13px;color:#1e7a4a;" id="discountRowMobile">
+                        <div style="display:none;justify-content:space-between;padding:4px 0;font-size:13px;color:#1e7a4a;"
+                            id="discountRowMobile">
                             <span>Discount <span class="discount-code-label-mobile" style="font-size:11px;"></span></span>
                             <span id="discountAmountMobile">−₹0.00</span>
                         </div>
 
                         {{-- Shipping --}}
-                        <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:var(--soft);">
+                        <div
+                            style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:var(--soft);">
                             <span>Shipping</span>
                             <span data-total="shipping">₹{{ number_format($totalShipping, 2) }}</span>
                         </div>
 
                         {{-- Grand Total --}}
-                        <div style="display:flex;justify-content:space-between;padding:10px 0 4px;font-size:16px;font-weight:600;border-top:1px solid var(--line-strong);margin-top:6px;">
-                            <span>Total <span style="font-size:11px;font-weight:400;color:var(--soft);">(incl. GST)</span></span>
+                        <div
+                            style="display:flex;justify-content:space-between;padding:10px 0 4px;font-size:16px;font-weight:600;border-top:1px solid var(--line-strong);margin-top:6px;">
+                            <span>Total <span style="font-size:11px;font-weight:400;color:var(--soft);">(incl.
+                                    GST)</span></span>
                             <span id="grandTotalMobile">₹{{ number_format($total + $totalShipping, 2) }}</span>
                         </div>
 
@@ -582,8 +770,12 @@
                 @if ($totalGst > 0)
                     <div style="font-size:11px;color:var(--soft);">
                         ₹{{ number_format($totalGst, 2) }} GST
-                        @if ($totalShipping > 0) · @endif
-                        @if ($totalShipping > 0) ₹{{ number_format($totalShipping, 2) }} ship @endif
+                        @if ($totalShipping > 0)
+                            ·
+                        @endif
+                        @if ($totalShipping > 0)
+                            ₹{{ number_format($totalShipping, 2) }} ship
+                        @endif
                     </div>
                 @endif
             </div>
@@ -604,7 +796,8 @@
         <div class="coupon-modal">
             <div class="coupon-modal-header">
                 <span class="coupon-modal-title">Available Coupons</span>
-                <button type="button" class="coupon-modal-close" id="couponModalClose"><i class="bi bi-x-lg"></i></button>
+                <button type="button" class="coupon-modal-close" id="couponModalClose"><i
+                        class="bi bi-x-lg"></i></button>
             </div>
             <div class="coupon-modal-body" id="couponModalBody">
                 <div class="coupon-modal-loading">Loading coupons…</div>
@@ -617,10 +810,10 @@
             radio.addEventListener('change', function() {
                 document.querySelectorAll('input[name="payment_method"]').forEach(function(r) {
                     r.closest('label').style.borderColor = 'var(--line)';
-                    r.closest('label').style.background  = 'var(--bg)';
+                    r.closest('label').style.background = 'var(--bg)';
                 });
                 this.closest('label').style.borderColor = 'var(--accent)';
-                this.closest('label').style.background  = 'var(--surface)';
+                this.closest('label').style.background = 'var(--surface)';
             });
         });
     </script>
@@ -628,10 +821,17 @@
     <script>
         document.getElementById('checkoutForm').addEventListener('submit', function() {
             const desktopBtn = this.querySelector('button[type="submit"]');
-            const mobileBtn  = document.querySelector('button[form="checkoutForm"]');
-            const loadingHtml = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Placing Order…`;
-            if (desktopBtn) { desktopBtn.disabled = true; desktopBtn.innerHTML = loadingHtml; }
-            if (mobileBtn)  { mobileBtn.disabled  = true; mobileBtn.innerHTML  = loadingHtml; }
+            const mobileBtn = document.querySelector('button[form="checkoutForm"]');
+            const loadingHtml =
+                `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Placing Order…`;
+            if (desktopBtn) {
+                desktopBtn.disabled = true;
+                desktopBtn.innerHTML = loadingHtml;
+            }
+            if (mobileBtn) {
+                mobileBtn.disabled = true;
+                mobileBtn.innerHTML = loadingHtml;
+            }
         });
     </script>
 
@@ -653,237 +853,271 @@
          meantime and the Apply / Remove flow keeps working normally.
     ════════════════════════════════════════════════════════════════════ --}}
     <script>
-    (function () {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
-            || document.querySelector('input[name="_token"]')?.value;
+        (function() {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ||
+                document.querySelector('input[name="_token"]')?.value;
 
-        // Base order figures rendered by the server (no discount applied)
-        const baseSubtotalExGst = {{ (float) $totalExGst }};
-        const baseGst           = {{ (float) $totalGst }};
-        const baseShipping      = {{ (float) $totalShipping }};
-        const baseTotal         = {{ (float) ($total + $totalShipping) }};
+            // Base order figures rendered by the server (no discount applied)
+            const baseSubtotalExGst = {{ (float) $totalExGst }};
+            const baseGst = {{ (float) $totalGst }};
+            const baseShipping = {{ (float) $totalShipping }};
+            const baseTotal = {{ (float) ($total + $totalShipping) }};
 
-        const hiddenCouponInput = document.getElementById('couponCodeHidden');
-        const modalOverlay = document.getElementById('couponModalOverlay');
-        const modalBody = document.getElementById('couponModalBody');
-        const modalClose = document.getElementById('couponModalClose');
+            const hiddenCouponInput = document.getElementById('couponCodeHidden');
+            const modalOverlay = document.getElementById('couponModalOverlay');
+            const modalBody = document.getElementById('couponModalBody');
+            const modalClose = document.getElementById('couponModalClose');
 
-        let couponsLoaded = false;
-        let appliedDiscount = 0; // ex-GST discount currently applied
+            let couponsLoaded = false;
+            let appliedDiscount = 0; // ex-GST discount currently applied
 
-        function formatRupee(n) {
-            return '₹' + Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
-
-        // ── Recompute and repaint every total on the page ──
-        function recalcTotals() {
-            const newGrandTotal = Math.max(0, baseTotal - appliedDiscount);
-
-            document.getElementById('grandTotalDesktop').textContent = formatRupee(newGrandTotal);
-            document.getElementById('grandTotalMobile').textContent  = formatRupee(newGrandTotal);
-            document.getElementById('stickyBarTotal').textContent    = formatRupee(newGrandTotal);
-            document.getElementById('mobileSummaryTotalLabel').textContent = formatRupee(newGrandTotal);
-
-            const discountRowDesktop = document.getElementById('discountRowDesktop');
-            const discountRowMobile  = document.getElementById('discountRowMobile');
-
-            if (appliedDiscount > 0) {
-                discountRowDesktop.style.display = 'flex';
-                discountRowMobile.style.display  = 'flex';
-                document.getElementById('discountAmountDesktop').textContent = '−' + formatRupee(appliedDiscount);
-                document.getElementById('discountAmountMobile').textContent  = '−' + formatRupee(appliedDiscount);
-            } else {
-                discountRowDesktop.style.display = 'none';
-                discountRowMobile.style.display  = 'none';
-            }
-        }
-
-        // ── Wire up both coupon boxes (desktop + mobile) identically ──
-        function wireCouponBox(boxId, formStateId, appliedStateId) {
-            const box = document.getElementById(boxId);
-            if (!box) return;
-
-            const formState    = document.getElementById(formStateId);
-            const appliedState = document.getElementById(appliedStateId);
-            const input        = box.querySelector('.coupon-code-input');
-            const applyBtn     = box.querySelector('.coupon-apply-btn-trigger');
-            // The next two are currently commented out in the markup (both desktop
-            // and mobile), so these will be null until re-enabled. Every usage
-            // below is null-guarded on purpose — do not remove the guards.
-            const msgEl        = box.querySelector('.coupon-msg-target');
-            const browseBtn    = box.querySelector('.coupon-browse-trigger');
-            const removeBtn    = box.querySelector('.coupon-remove-trigger');
-
-            function showMessage(text, type) {
-                if (!msgEl) return;
-                msgEl.textContent = text;
-                msgEl.className = 'coupon-msg coupon-msg-target ' + type;
-                msgEl.style.display = 'block';
-            }
-            function clearMessage() {
-                if (!msgEl) return;
-                msgEl.style.display = 'none';
-            }
-
-            function setAppliedUI(data) {
-                box.querySelector('.applied-code-target').textContent = data.code;
-                box.querySelector('.applied-desc-target').textContent = data.description || '';
-                box.querySelector('.applied-save-target').textContent =
-                    'You saved ' + formatRupee(data.discount_ex_gst);
-
-                formState.style.display = 'none';
-                appliedState.style.display = 'block';
-                box.classList.add('applied');
-                hiddenCouponInput.value = data.code;
-
-                // Update the small "(CODE)" label next to "Discount" in both summaries
-                document.querySelectorAll('.discount-code-label-desktop, .discount-code-label-mobile')
-                    .forEach(el => el.textContent = '(' + data.code + ')');
-
-                appliedDiscount = Number(data.discount_ex_gst);
-                recalcTotals();
-
-                // Keep both boxes (desktop + mobile) in sync visually
-                syncOtherBox(boxId, data);
-            }
-
-            function resetUI() {
-                formState.style.display = 'block';
-                appliedState.style.display = 'none';
-                box.classList.remove('applied');
-                hiddenCouponInput.value = '';
-                input.value = '';
-                clearMessage();
-
-                appliedDiscount = 0;
-                recalcTotals();
-
-                syncOtherBoxReset(boxId);
-            }
-
-            async function applyCode(code) {
-                if (!code) { showMessage('Please enter a coupon code.', 'error'); return; }
-
-                applyBtn.disabled = true;
-                applyBtn.textContent = 'Applying…';
-                clearMessage();
-
-                try {
-                    const res = await fetch('{{ route("checkout.coupon.apply") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json',
-                        },
-                        body: JSON.stringify({ code: code.toUpperCase() }),
-                    });
-                    const data = await res.json();
-
-                    if (!res.ok || !data.success) {
-                        showMessage(data.message || 'Could not apply this coupon.', 'error');
-                        return;
-                    }
-
-                    setAppliedUI(data);
-                    closeModal();
-                } catch (e) {
-                    showMessage('Something went wrong. Please try again.', 'error');
-                } finally {
-                    applyBtn.disabled = false;
-                    applyBtn.textContent = 'Apply';
-                }
-            }
-
-            applyBtn.addEventListener('click', () => applyCode(input.value.trim()));
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') { e.preventDefault(); applyCode(input.value.trim()); }
-            });
-
-            if (removeBtn) {
-                removeBtn.addEventListener('click', async () => {
-                    removeBtn.disabled = true;
-                    try {
-                        await fetch('{{ route("checkout.coupon.remove") }}', {
-                            method: 'POST',
-                            headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                        });
-                    } catch (e) { /* ignore */ }
-                    resetUI();
-                    removeBtn.disabled = false;
+            function formatRupee(n) {
+                return '₹' + Number(n).toLocaleString('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
                 });
             }
 
-            if (browseBtn) {
-                browseBtn.addEventListener('click', openModal);
+            // ── Recompute and repaint every total on the page ──
+            function recalcTotals() {
+                const newGrandTotal = Math.max(0, baseTotal - appliedDiscount);
+
+                document.getElementById('grandTotalDesktop').textContent = formatRupee(newGrandTotal);
+                document.getElementById('grandTotalMobile').textContent = formatRupee(newGrandTotal);
+                document.getElementById('stickyBarTotal').textContent = formatRupee(newGrandTotal);
+                document.getElementById('mobileSummaryTotalLabel').textContent = formatRupee(newGrandTotal);
+
+                const discountRowDesktop = document.getElementById('discountRowDesktop');
+                const discountRowMobile = document.getElementById('discountRowMobile');
+
+                if (appliedDiscount > 0) {
+                    discountRowDesktop.style.display = 'flex';
+                    discountRowMobile.style.display = 'flex';
+                    document.getElementById('discountAmountDesktop').textContent = '−' + formatRupee(appliedDiscount);
+                    document.getElementById('discountAmountMobile').textContent = '−' + formatRupee(appliedDiscount);
+                } else {
+                    discountRowDesktop.style.display = 'none';
+                    discountRowMobile.style.display = 'none';
+                }
             }
 
-            // Expose apply function so the modal's "Apply" buttons can trigger it
-            box.__applyCode = applyCode;
-            box.__setAppliedUI = setAppliedUI;
-            box.__resetUI = resetUI;
-        }
+            // ── Wire up both coupon boxes (desktop + mobile) identically ──
+            function wireCouponBox(boxId, formStateId, appliedStateId) {
+                const box = document.getElementById(boxId);
+                if (!box) return;
 
-        function syncOtherBox(currentBoxId, data) {
-            const otherId = currentBoxId === 'couponBoxDesktop' ? 'couponBoxMobile' : 'couponBoxDesktop';
-            const otherBox = document.getElementById(otherId);
-            if (otherBox && otherBox.__setAppliedUI) {
-                const formStateId    = otherId === 'couponBoxDesktop' ? 'couponFormStateDesktop' : 'couponFormStateMobile';
-                const appliedStateId = otherId === 'couponBoxDesktop' ? 'couponAppliedStateDesktop' : 'couponAppliedStateMobile';
-                document.getElementById(formStateId).style.display = 'none';
-                document.getElementById(appliedStateId).style.display = 'block';
-                otherBox.classList.add('applied');
-                otherBox.querySelector('.applied-code-target').textContent = data.code;
-                otherBox.querySelector('.applied-desc-target').textContent = data.description || '';
-                otherBox.querySelector('.applied-save-target').textContent = 'You saved ' + formatRupee(data.discount_ex_gst);
-            }
-        }
+                const formState = document.getElementById(formStateId);
+                const appliedState = document.getElementById(appliedStateId);
+                const input = box.querySelector('.coupon-code-input');
+                const applyBtn = box.querySelector('.coupon-apply-btn-trigger');
+                // The next two are currently commented out in the markup (both desktop
+                // and mobile), so these will be null until re-enabled. Every usage
+                // below is null-guarded on purpose — do not remove the guards.
+                const msgEl = box.querySelector('.coupon-msg-target');
+                const browseBtn = box.querySelector('.coupon-browse-trigger');
+                const removeBtn = box.querySelector('.coupon-remove-trigger');
 
-        function syncOtherBoxReset(currentBoxId) {
-            const otherId = currentBoxId === 'couponBoxDesktop' ? 'couponBoxMobile' : 'couponBoxDesktop';
-            const otherBox = document.getElementById(otherId);
-            if (otherBox) {
-                const formStateId    = otherId === 'couponBoxDesktop' ? 'couponFormStateDesktop' : 'couponFormStateMobile';
-                const appliedStateId = otherId === 'couponBoxDesktop' ? 'couponAppliedStateDesktop' : 'couponAppliedStateMobile';
-                document.getElementById(formStateId).style.display = 'block';
-                document.getElementById(appliedStateId).style.display = 'none';
-                otherBox.classList.remove('applied');
-                const input = otherBox.querySelector('.coupon-code-input');
-                if (input) input.value = '';
-            }
-        }
-
-        wireCouponBox('couponBoxDesktop', 'couponFormStateDesktop', 'couponAppliedStateDesktop');
-        wireCouponBox('couponBoxMobile', 'couponFormStateMobile', 'couponAppliedStateMobile');
-
-        // ── Modal (fully intact — just currently unreachable since both
-        //     browse-trigger buttons are commented out in the markup) ──
-        function openModal() { modalOverlay.classList.add('open'); loadCoupons(); }
-        function closeModal() { modalOverlay.classList.remove('open'); }
-
-        modalClose.addEventListener('click', closeModal);
-        modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
-
-        function escapeHtml(str) {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
-
-        async function loadCoupons() {
-            if (couponsLoaded) return;
-            modalBody.innerHTML = '<div class="coupon-modal-loading">Loading coupons…</div>';
-
-            try {
-                const res = await fetch('{{ route("checkout.coupons.list") }}', { headers: { 'Accept': 'application/json' } });
-                const coupons = await res.json();
-
-                if (!coupons.length) {
-                    modalBody.innerHTML = '<div class="coupon-modal-empty">No coupons available right now.</div>';
-                    return;
+                function showMessage(text, type) {
+                    if (!msgEl) return;
+                    msgEl.textContent = text;
+                    msgEl.className = 'coupon-msg coupon-msg-target ' + type;
+                    msgEl.style.display = 'block';
                 }
 
-                modalBody.innerHTML = coupons.map(c => `
+                function clearMessage() {
+                    if (!msgEl) return;
+                    msgEl.style.display = 'none';
+                }
+
+                function setAppliedUI(data) {
+                    box.querySelector('.applied-code-target').textContent = data.code;
+                    box.querySelector('.applied-desc-target').textContent = data.description || '';
+                    box.querySelector('.applied-save-target').textContent =
+                        'You saved ' + formatRupee(data.discount_ex_gst);
+
+                    formState.style.display = 'none';
+                    appliedState.style.display = 'block';
+                    box.classList.add('applied');
+                    hiddenCouponInput.value = data.code;
+
+                    // Update the small "(CODE)" label next to "Discount" in both summaries
+                    document.querySelectorAll('.discount-code-label-desktop, .discount-code-label-mobile')
+                        .forEach(el => el.textContent = '(' + data.code + ')');
+
+                    appliedDiscount = Number(data.discount_ex_gst);
+                    recalcTotals();
+
+                    // Keep both boxes (desktop + mobile) in sync visually
+                    syncOtherBox(boxId, data);
+                }
+
+                function resetUI() {
+                    formState.style.display = 'block';
+                    appliedState.style.display = 'none';
+                    box.classList.remove('applied');
+                    hiddenCouponInput.value = '';
+                    input.value = '';
+                    clearMessage();
+
+                    appliedDiscount = 0;
+                    recalcTotals();
+
+                    syncOtherBoxReset(boxId);
+                }
+
+                async function applyCode(code) {
+                    if (!code) {
+                        showMessage('Please enter a coupon code.', 'error');
+                        return;
+                    }
+
+                    applyBtn.disabled = true;
+                    applyBtn.textContent = 'Applying…';
+                    clearMessage();
+
+                    try {
+                        const res = await fetch('{{ route('checkout.coupon.apply') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                code: code.toUpperCase()
+                            }),
+                        });
+                        const data = await res.json();
+
+                        if (!res.ok || !data.success) {
+                            showMessage(data.message || 'Could not apply this coupon.', 'error');
+                            return;
+                        }
+
+                        setAppliedUI(data);
+                        closeModal();
+                    } catch (e) {
+                        showMessage('Something went wrong. Please try again.', 'error');
+                    } finally {
+                        applyBtn.disabled = false;
+                        applyBtn.textContent = 'Apply';
+                    }
+                }
+
+                applyBtn.addEventListener('click', () => applyCode(input.value.trim()));
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        applyCode(input.value.trim());
+                    }
+                });
+
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', async () => {
+                        removeBtn.disabled = true;
+                        try {
+                            await fetch('{{ route('checkout.coupon.remove') }}', {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': csrfToken,
+                                    'Accept': 'application/json'
+                                },
+                            });
+                        } catch (e) {
+                            /* ignore */ }
+                        resetUI();
+                        removeBtn.disabled = false;
+                    });
+                }
+
+                if (browseBtn) {
+                    browseBtn.addEventListener('click', openModal);
+                }
+
+                // Expose apply function so the modal's "Apply" buttons can trigger it
+                box.__applyCode = applyCode;
+                box.__setAppliedUI = setAppliedUI;
+                box.__resetUI = resetUI;
+            }
+
+            function syncOtherBox(currentBoxId, data) {
+                const otherId = currentBoxId === 'couponBoxDesktop' ? 'couponBoxMobile' : 'couponBoxDesktop';
+                const otherBox = document.getElementById(otherId);
+                if (otherBox && otherBox.__setAppliedUI) {
+                    const formStateId = otherId === 'couponBoxDesktop' ? 'couponFormStateDesktop' :
+                        'couponFormStateMobile';
+                    const appliedStateId = otherId === 'couponBoxDesktop' ? 'couponAppliedStateDesktop' :
+                        'couponAppliedStateMobile';
+                    document.getElementById(formStateId).style.display = 'none';
+                    document.getElementById(appliedStateId).style.display = 'block';
+                    otherBox.classList.add('applied');
+                    otherBox.querySelector('.applied-code-target').textContent = data.code;
+                    otherBox.querySelector('.applied-desc-target').textContent = data.description || '';
+                    otherBox.querySelector('.applied-save-target').textContent = 'You saved ' + formatRupee(data
+                        .discount_ex_gst);
+                }
+            }
+
+            function syncOtherBoxReset(currentBoxId) {
+                const otherId = currentBoxId === 'couponBoxDesktop' ? 'couponBoxMobile' : 'couponBoxDesktop';
+                const otherBox = document.getElementById(otherId);
+                if (otherBox) {
+                    const formStateId = otherId === 'couponBoxDesktop' ? 'couponFormStateDesktop' :
+                        'couponFormStateMobile';
+                    const appliedStateId = otherId === 'couponBoxDesktop' ? 'couponAppliedStateDesktop' :
+                        'couponAppliedStateMobile';
+                    document.getElementById(formStateId).style.display = 'block';
+                    document.getElementById(appliedStateId).style.display = 'none';
+                    otherBox.classList.remove('applied');
+                    const input = otherBox.querySelector('.coupon-code-input');
+                    if (input) input.value = '';
+                }
+            }
+
+            wireCouponBox('couponBoxDesktop', 'couponFormStateDesktop', 'couponAppliedStateDesktop');
+            wireCouponBox('couponBoxMobile', 'couponFormStateMobile', 'couponAppliedStateMobile');
+
+            // ── Modal (fully intact — just currently unreachable since both
+            //     browse-trigger buttons are commented out in the markup) ──
+            function openModal() {
+                modalOverlay.classList.add('open');
+                loadCoupons();
+            }
+
+            function closeModal() {
+                modalOverlay.classList.remove('open');
+            }
+
+            modalClose.addEventListener('click', closeModal);
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) closeModal();
+            });
+
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            async function loadCoupons() {
+                if (couponsLoaded) return;
+                modalBody.innerHTML = '<div class="coupon-modal-loading">Loading coupons…</div>';
+
+                try {
+                    const res = await fetch('{{ route('checkout.coupons.list') }}', {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    const coupons = await res.json();
+
+                    if (!coupons.length) {
+                        modalBody.innerHTML =
+                            '<div class="coupon-modal-empty">No coupons available right now.</div>';
+                        return;
+                    }
+
+                    modalBody.innerHTML = coupons.map(c => `
                     <div class="coupon-list-item">
                         <div>
                             <div class="coupon-list-code">${c.code}</div>
@@ -900,54 +1134,58 @@
                     </div>
                 `).join('');
 
-                modalBody.querySelectorAll('.coupon-list-use-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        // Apply via the desktop box if visible, otherwise mobile
-                        const visibleBox = window.innerWidth >= 992
-                            ? document.getElementById('couponBoxDesktop')
-                            : document.getElementById('couponBoxMobile');
-                        if (visibleBox && visibleBox.__applyCode) {
-                            visibleBox.__applyCode(btn.dataset.code);
-                        }
+                    modalBody.querySelectorAll('.coupon-list-use-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            // Apply via the desktop box if visible, otherwise mobile
+                            const visibleBox = window.innerWidth >= 992 ?
+                                document.getElementById('couponBoxDesktop') :
+                                document.getElementById('couponBoxMobile');
+                            if (visibleBox && visibleBox.__applyCode) {
+                                visibleBox.__applyCode(btn.dataset.code);
+                            }
+                        });
                     });
-                });
 
-                couponsLoaded = true;
-            } catch (e) {
-                modalBody.innerHTML = '<div class="coupon-modal-empty">Could not load coupons. Please try again.</div>';
+                    couponsLoaded = true;
+                } catch (e) {
+                    modalBody.innerHTML =
+                        '<div class="coupon-modal-empty">Could not load coupons. Please try again.</div>';
+                }
             }
-        }
 
-        // ── If a coupon is already in session (e.g. page reload after apply), restore UI ──
-        @if (session('coupon'))
-            (function restoreAppliedCoupon() {
-                const data = {
-                    code: @json(session('coupon.code')),
-                    description: @json(session('coupon.description')),
-                    discount_ex_gst: {{ (float) session('coupon.discount_ex_gst', 0) }},
-                };
-                appliedDiscount = data.discount_ex_gst;
+            // ── If a coupon is already in session (e.g. page reload after apply), restore UI ──
+            @if (session('coupon'))
+                (function restoreAppliedCoupon() {
+                    const data = {
+                        code: @json(session('coupon.code')),
+                        description: @json(session('coupon.description')),
+                        discount_ex_gst: {{ (float) session('coupon.discount_ex_gst', 0) }},
+                    };
+                    appliedDiscount = data.discount_ex_gst;
 
-                ['couponBoxDesktop', 'couponBoxMobile'].forEach(function (boxId) {
-                    const box = document.getElementById(boxId);
-                    if (!box) return;
-                    const formStateId    = boxId === 'couponBoxDesktop' ? 'couponFormStateDesktop' : 'couponFormStateMobile';
-                    const appliedStateId = boxId === 'couponBoxDesktop' ? 'couponAppliedStateDesktop' : 'couponAppliedStateMobile';
-                    document.getElementById(formStateId).style.display = 'none';
-                    document.getElementById(appliedStateId).style.display = 'block';
-                    box.classList.add('applied');
-                    box.querySelector('.applied-code-target').textContent = data.code;
-                    box.querySelector('.applied-desc-target').textContent = data.description || '';
-                    box.querySelector('.applied-save-target').textContent = 'You saved ' + formatRupee(data.discount_ex_gst);
-                });
+                    ['couponBoxDesktop', 'couponBoxMobile'].forEach(function(boxId) {
+                        const box = document.getElementById(boxId);
+                        if (!box) return;
+                        const formStateId = boxId === 'couponBoxDesktop' ? 'couponFormStateDesktop' :
+                            'couponFormStateMobile';
+                        const appliedStateId = boxId === 'couponBoxDesktop' ? 'couponAppliedStateDesktop' :
+                            'couponAppliedStateMobile';
+                        document.getElementById(formStateId).style.display = 'none';
+                        document.getElementById(appliedStateId).style.display = 'block';
+                        box.classList.add('applied');
+                        box.querySelector('.applied-code-target').textContent = data.code;
+                        box.querySelector('.applied-desc-target').textContent = data.description || '';
+                        box.querySelector('.applied-save-target').textContent = 'You saved ' + formatRupee(
+                            data.discount_ex_gst);
+                    });
 
-                document.querySelectorAll('.discount-code-label-desktop, .discount-code-label-mobile')
-                    .forEach(el => el.textContent = '(' + data.code + ')');
+                    document.querySelectorAll('.discount-code-label-desktop, .discount-code-label-mobile')
+                        .forEach(el => el.textContent = '(' + data.code + ')');
 
-                recalcTotals();
-            })();
-        @endif
-    })();
+                    recalcTotals();
+                })();
+            @endif
+        })();
     </script>
 
 @endsection
