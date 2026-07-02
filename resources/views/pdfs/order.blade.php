@@ -25,6 +25,8 @@
 
         .brand { font-size:18px; font-weight:bold; color:#1a1a1a; letter-spacing:1px; text-transform:uppercase; }
         .brand-sub { font-size:8px; color:black; letter-spacing:2.5px; text-transform:uppercase; margin-top:3px; }
+        .brand-details { font-size:8px; color:#555555; margin-top:6px; line-height:1.6; }
+        .brand-details .gstin { font-weight:bold; color:#1a1a1a; margin-top:2px; }
 
         .inv-right { text-align:right; }
         .inv-type { font-size:8px; color:black; letter-spacing:2px; text-transform:uppercase; margin-bottom:3px; }
@@ -184,6 +186,11 @@
             <td>
                 <div class="brand">EVERWEAR INDUSTRIES</div>
                 <div class="brand-sub"><strong>The Legend of Award Products</strong></div>
+                <div class="brand-details">
+                    61 Rani Jhansi Road, MM Road Jhandewalan, New Delhi 110055<br>
+                    Contact: +91 9911947047 &nbsp;|&nbsp; Email: support@everwearindustries.com
+                    <div class="gstin">GSTIN: 07AUIPB8794J1Z3</div>
+                </div>
             </td>
             <td class="inv-right">
                 <div class="inv-type"><strong>Sales Quotation</strong></div>
