@@ -8,7 +8,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 
-Route::get('/clear', function ($key) {
+Route::get('/clear', function () {
 
     Artisan::call('optimize:clear');
     Artisan::call('config:clear');
