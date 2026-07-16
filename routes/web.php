@@ -21,6 +21,17 @@ Route::get('/clear', function ($key) {
     ]);
 });
 
+Route::get('/mail-check', function () {
+    return [
+        'from' => config('mail.from'),
+        'mailer' => config('mail.default'),
+        'host' => config('mail.mailers.smtp.host'),
+        'port' => config('mail.mailers.smtp.port'),
+        'username' => config('mail.mailers.smtp.username'),
+        'encryption' => config('mail.mailers.smtp.encryption'),
+    ];
+});
+
 Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
