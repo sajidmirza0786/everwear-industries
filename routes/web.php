@@ -6,6 +6,20 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
+
+Route::get('/clear', function ($key) {
+
+    Artisan::call('optimize:clear');
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('config:cache');
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Application cache cleared successfully.',
+    ]);
+});
 
 Route::get('/', function () {
     return view('welcome');
