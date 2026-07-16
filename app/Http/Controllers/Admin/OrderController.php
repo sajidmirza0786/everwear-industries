@@ -369,7 +369,8 @@ class OrderController extends Controller
             DB::commit();
 
             try {
-                Mail::to([$order->email, 'cypwebtechs@gmail.com'])
+                Mail::to([$order->email])
+                    ->cc('order@everwearindustries.com')
                     ->send(new OrderInvoiceMail($order->load('items.product')));
             } catch (\Throwable $e) {
                 \Log::error('Order invoice mail failed: ' . $e->getMessage());

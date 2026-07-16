@@ -760,7 +760,8 @@ class CheckoutController extends Controller
 
             // ── Send invoice ───────────────────────────────────────────────────
             try {
-                Mail::to([$order->email, 'order@everwearindustries.com'])
+                Mail::to([$order->email])
+                    ->cc('order@everwearindustries.com')
                     ->send(new OrderInvoiceMail($order->load('items.product')));
             } catch (\Throwable $e) {
                 \Log::error('Order invoice mail failed: ' . $e->getMessage());
